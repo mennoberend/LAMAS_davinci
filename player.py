@@ -97,17 +97,25 @@ class HumanControlledPlayer(Player):
         print(f"You just drew {drawn_tile}.")
         # Choose a player
         prompt = "\nOf which player you want to guess a tile?" + (" Type -1 to not guess" if is_optional else "")
-        player_name = int(input(prompt))
+        player_name = int(self.save_prompt(prompt, list({str(p.name) for p in game.players} - {str(self.name)}) + ['-1']))
         if is_optional and player_name == -1:
             return None, None, None
         chosen_player = [p for p in game.players if p.name == player_name][0]
 
         # Choose a tile idx
         prompt = "\nWhat is the idx of the tile? (Starting at 0)"
-        tile_idx = int(input(prompt))
+        tile_idx = int(self.save_prompt(prompt, [str(idx) for idx in range(len(chosen_player.tiles))]))
 
         # Choose the tile
         prompt = "\nWhat tile do you think the player has. (Enter as b1 or w6)"
-        guess = Tile.from_string(input(prompt))
+        guess = Tile.from_string(self.save_prompt(prompt, [str(t) for t in Tile.complete_set()]))
 
         return chosen_player, tile_idx, guess
+
+    @staticmethod
+    def save_prompt(prompt, allowed_responses=None):
+        ret = input(prompt)
+        while allowed_responses and ret not in allowed_responses:
+            print('Your response is not allowed, please retry...')
+            ret = input(prompt)
+        return ret
