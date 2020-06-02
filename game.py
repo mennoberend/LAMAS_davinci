@@ -1,7 +1,7 @@
 import random
 
-from LAMAS_davinci.player import SimpleRandomPlayer, HumanControlledPlayer
-from LAMAS_davinci.tile import Tile
+from player import SimpleRandomPlayer, HumanControlledPlayer
+from tile import Tile
 
 
 class Game:

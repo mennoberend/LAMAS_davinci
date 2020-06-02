@@ -2,7 +2,7 @@ from math import exp
 
 import numpy as np
 
-from LAMAS_davinci.tile import Tile
+from tile import Tile
 
 
 def exponential_random_choice(a):

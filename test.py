@@ -1,4 +1,4 @@
-from LAMAS_davinci.game import Game
+from game import Game
 
 
 def main():
