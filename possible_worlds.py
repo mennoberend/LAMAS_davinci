@@ -39,7 +39,7 @@ def sort_combination(combination, other_player_colors):
 def possible_worlds(own_tiles, other_player_colors):
     print(f"Our own blocks: {' '.join(map(str, own_tiles))}")
     print(f"Opponent colors: {', '.join(''.join(p) for p in other_player_colors)}\n")
-    unknown_tiles = list(set(Tile.complete_set(13)) - set(own_tiles))
+    unknown_tiles = list(set(Tile.complete_set(6)) - set(own_tiles))
     # all_combinations = list(itertools.permutations(unknown_tiles, sum(map(len, other_player_colors))))
     all_combinations = perms(unknown_tiles, other_player_colors)
     print(f"There are {len(all_combinations)} possible worlds without regarding any game rules.")
@@ -65,13 +65,20 @@ def possible_worlds(own_tiles, other_player_colors):
 
 
 if __name__ == "__main__":
-    # own_tiles = list(map(lambda s: Tile.from_string(s), ['w1', 'b5', 'w5', 'w6']))
-    # other_player_colors = [['b', 'b', 'w', 'w'], ['b', 'w', 'b', 'b']]
+    own_tiles = list(map(lambda s: Tile.from_string(s), ['w1', 'b5', 'w5', 'w6']))
+    other_player_colors = [['b', 'b', 'w', 'w'], ['b', 'w', 'b', 'b']]
+    possible_worlds(own_tiles, other_player_colors)
+
     own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5', 'w6']))
     other_player_colors = [['b', 'w', 'w', 'b'], ['w', 'b', 'w', 'w']]
-    # own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5']))
-    # other_player_colors = [['b', 'w', 'w'], ['w', 'b', 'w']]
-    # own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5', 'w6']))
-    # other_player_colors = [['b', 'w', 'w', 'b']]
-
     possible_worlds(own_tiles, other_player_colors)
+
+    own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5']))
+    other_player_colors = [['b', 'w', 'w'], ['w', 'b', 'w']]
+    possible_worlds(own_tiles, other_player_colors)
+
+    own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5', 'w6']))
+    other_player_colors = [['b', 'w', 'w', 'b']]
+    possible_worlds(own_tiles, other_player_colors)
+
+
