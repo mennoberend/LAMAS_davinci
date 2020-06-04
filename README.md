@@ -1,1 +1,0 @@
-# LAMAS_davinci
