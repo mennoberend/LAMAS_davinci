@@ -1,5 +1,5 @@
 title: Da Vinci Code
-description: A Project for LAMAS
-show_downloads: true
+description: A project website for 'Logical Aspects of Multi Agent Systems'
+show_downloads: false
 google_analytics:
 theme: jekyll-theme-dinky
