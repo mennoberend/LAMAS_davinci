@@ -12,8 +12,8 @@ def exponential_random_choice(a):
 
 
 class Player:
-    def __init__(self, tiles, name):
-        self.tiles = sorted(tiles)
+    def __init__(self, starting_tiles, name):
+        self.tiles = sorted(starting_tiles)
         self.name = name
 
     def game_str(self):
@@ -109,7 +109,6 @@ class HumanControlledPlayer(Player):
         # Choose the tile
         prompt = "\nWhat tile do you think the player has. (Enter as b1 or w6)"
         guess = Tile.from_string(self.save_prompt(prompt, [str(t) for t in Tile.complete_set()]))
-
         return chosen_player, tile_idx, guess
 
     @staticmethod

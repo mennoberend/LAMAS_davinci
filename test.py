@@ -2,8 +2,12 @@ from game import Game
 
 
 def main():
-    human_player_in_the_game = True
-    game = Game(amount_of_players=1, add_human_player=human_player_in_the_game)
+    human_player_in_the_game = False
+    game = Game(
+        amount_of_players=3,
+        amount_of_starting_tiles=4,
+        add_human_player=human_player_in_the_game
+    )
 
     print(game.game_str())
     prompt = 'Press enter to continue to the next round(or type anything to exit)'
