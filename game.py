@@ -28,8 +28,8 @@ class Game:
                f'\nTable: {" ".join(t.game_str() for t in self.tiles_open_on_table)}' + \
                '\n'
 
-    def play_round(self):
-        self.players[self.current_player_idx].play_round(self)
+    def play_round(self, view=None):
+        self.players[self.current_player_idx].play_round(self, view=view)
         self.current_player_idx = (self.current_player_idx + 1) % len(self.players)
 
     def take_tile_from_table(self):

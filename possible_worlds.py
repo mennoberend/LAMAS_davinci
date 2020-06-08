@@ -3,7 +3,7 @@ import itertools
 
 
 class GameState:
-    def __init__(self, player_tiles, tiles_open_on_table):
+    def __init__(self, player_tiles, tiles_open_on_table, max_tile_number=6):
         self.player_tiles = player_tiles
         self.flat_player_tiles = [t for p in player_tiles for t in p]
 
@@ -15,6 +15,7 @@ class GameState:
             cumulative_length += player_length
 
         self.tiles_open_on_table = tiles_open_on_table
+        self.max_tile_number = max_tile_number
 
     @property
     def known_tiles(self):
@@ -23,7 +24,7 @@ class GameState:
 
     @property
     def unknown_tiles(self):
-        return list(set(Tile.complete_set(6)) - set(self.known_tiles))
+        return list(set(Tile.complete_set(self.max_tile_number)) - set(self.known_tiles))
 
     def __str__(self):
         s = "players tiles:\n"
@@ -36,7 +37,7 @@ class GameState:
 
 
 def permutation_adheres_to_game_rules(added_tile, previous_tile, game_state, idx):
-    if game_state.flat_player_tiles[idx][0] != added_tile.color:  # Make sure the color matches what we see
+    if game_state.flat_player_tiles[idx][0] != added_tile.color:  # Make sure the color matches what we know
         return False
 
     if idx not in game_state.end_of_player_idxs and previous_tile is not None:
@@ -46,11 +47,11 @@ def permutation_adheres_to_game_rules(added_tile, previous_tile, game_state, idx
     return True
 
 
-def perms(arr, game_state, idx=0, previous_tile=None):
+def perms(unused_tiles, game_state, idx=0, previous_tile=None):
     # We reached the required length
     if idx == len(game_state.flat_player_tiles) - 1:
         if '*' in game_state.flat_player_tiles[idx]:
-            return [[v] for v in arr
+            return [[v] for v in unused_tiles
                     if permutation_adheres_to_game_rules(v, previous_tile, game_state, idx)]
         else:
             already_known_tile = Tile.from_string(game_state.flat_player_tiles[idx])
@@ -63,21 +64,21 @@ def perms(arr, game_state, idx=0, previous_tile=None):
     if '*' not in game_state.flat_player_tiles[idx]:
         already_known_tile = Tile.from_string(game_state.flat_player_tiles[idx])
         if permutation_adheres_to_game_rules(already_known_tile, previous_tile, game_state, idx):
-            return [[already_known_tile] + p for p in perms(arr, game_state, idx + 1, already_known_tile)]
+            return [[already_known_tile] + p for p in perms(unused_tiles, game_state, idx + 1, already_known_tile)]
         else:  # If the known tile does not adhere to the game rules, something must be wrong in this permutation
             return []
 
+    # Normal permutation step, add all possible combinations
     result = []
-    for i, v in enumerate(arr):
+    for i, v in enumerate(unused_tiles):
         if permutation_adheres_to_game_rules(v, previous_tile, game_state, idx):
-            result += [[v] + p for p in perms(arr[:i] + arr[i + 1:], game_state, idx + 1, v)]
+            result += [[v] + p for p in perms(unused_tiles[:i] + unused_tiles[i + 1:], game_state, idx + 1, v)]
     return result
 
 
 def possible_worlds(game_state):
     # print(f"Our own blocks: {' '.join(map(str, own_tiles))}")
-    print(f"Game state:\n{str(game_state)}")
-    print(game_state.end_of_player_idxs)
+    print(f"\nGame state:\n{str(game_state)}")
     all_combinations = perms(game_state.unknown_tiles, game_state)
 
     print(f"There are {len(all_combinations)} possible worlds after using what we see from our opponents:")
@@ -114,5 +115,5 @@ if __name__ == "__main__":
     # own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5', 'w6']))
     # other_player_colors = [['b', 'w', 'w', 'b']]
     player_tiles = [['b1', 'b4', 'b5', 'w6'], ['b*', 'w*', 'w*', 'b*']]
-    game_state = GameState(player_tiles, [])
+    game_state = GameState(player_tiles, [], max_tile_number=6)
     possible_worlds(game_state)
