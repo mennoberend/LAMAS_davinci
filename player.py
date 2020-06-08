@@ -90,7 +90,9 @@ class SimpleRandomPlayer(Player):
                 sorted([t for t in possible_tiles if t.color == chosen_tile.color], reverse=True)
             )
 
-        print(f"\n***Player {self.name} guesses that tile {tile_idx + 1} of Player {chosen_player.name} is {guess}***\n")
+        view.canvas.text.append(
+            f"Player {self.name} guesses that tile {tile_idx + 1} of Player {chosen_player.name} is {guess}"
+        )
         return chosen_player, tile_idx, guess
 
 
@@ -102,7 +104,7 @@ class HumanControlledPlayer(Player):
             view.canvas.draw_game(game, drawn_tile=drawn_tile)
 
         # Choose a player
-        prompt = "\nOf which player you want to guess a tile?" + (" Type -1 to not guess" if is_optional else "")
+        prompt = "\nOf which player you want to guess a tile?" + ("\nType -1 to not guess" if is_optional else "")
         player_name = int(self.save_prompt(prompt,
                                            list({str(p.name) for p in game.players} - {str(self.name)}) + ['-1'],
                                            view.master))
@@ -111,12 +113,17 @@ class HumanControlledPlayer(Player):
         chosen_player = [p for p in game.players if p.name == player_name][0]
 
         # Choose a tile idx
-        prompt = "\nWhat is the idx of the tile? (Starting at 0)"
-        tile_idx = int(self.save_prompt(prompt, [str(idx) for idx in range(len(chosen_player.tiles))], view.master))
+        prompt = "\nWhat is the idx of the tile? (Starting at 1)"
+        tile_idx = int(self.save_prompt(prompt, [str(idx + 1) for idx in range(len(chosen_player.tiles))], view.master)) - 1
 
         # Choose the tile
         prompt = "\nWhat tile do you think the player has. (Enter as b1 or w6)"
         guess = Tile.from_string(self.save_prompt(prompt, [str(t) for t in Tile.complete_set()], view.master))
+
+        view.canvas.text.append(
+            f"Player {self.name} guesses that tile {tile_idx + 1} of Player {chosen_player.name} is {guess}"
+        )
+
         return chosen_player, tile_idx, guess
 
     @staticmethod
