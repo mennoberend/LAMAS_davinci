@@ -135,8 +135,8 @@ class View:
 
     def next_round(self):
         game.play_round(view=self)
-        self.canvas.draw_game(self.game)
         self.canvas.text.append(f"It is Player {self.game.current_player_idx}'s turn!")
+        self.canvas.draw_game(self.game)
 
     def close(self):
         self.master.withdraw()
@@ -145,7 +145,7 @@ class View:
 
 if __name__ == "__main__":
     game = Game(
-        amount_of_players=3,
+        amount_of_players=1,
         amount_of_starting_tiles=3,
         add_human_player=True
     )
