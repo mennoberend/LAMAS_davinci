@@ -3,7 +3,7 @@ from tkinter import simpledialog
 
 import numpy as np
 
-from kripke_plotter import plot_kripke_model
+from kripke_plotter import plot_local_kripke_model
 from possible_worlds import GameState, possible_worlds
 from tile import Tile
 
@@ -90,7 +90,7 @@ class Player:
         # Calculate possible worlds
         all_possible_worlds = possible_worlds(game_state)
         # Plot the kripke model
-        plot_kripke_model(game_state, all_possible_worlds)
+        plot_local_kripke_model(game_state, all_possible_worlds)
 
 
 class SimpleRandomPlayer(Player):

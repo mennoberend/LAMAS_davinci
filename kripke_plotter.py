@@ -2,14 +2,18 @@ import networkx as nx
 from nxpd import draw
 
 
-def build_graph(possible_worlds):
-    G = nx.MultiDiGraph()  # create empty graph
+def build_graph(possible_worlds, G=None, color='red'):
+    G = G or nx.MultiDiGraph()  # create empty graph
+
     for world in possible_worlds:  # msg is python email.Message.Message object
         G.add_node(world, shape='square', penwidth=0, fontname="helvetica italic")
         other_worlds = [other for other in possible_worlds if other != world]
         for other in other_worlds:
-            if not G.has_edge(other, world):
-                G.add_edge(world, other, color='red', dir='both')
+            if G.has_edge(other, world):
+                existing_edges = G.get_edge_data(other, world)
+                if any([edge_data['color'] == color for edge_data in existing_edges.values()]):
+                    continue
+            G.add_edge(world, other, color=color, dir='both')
 
     return G
 
@@ -29,11 +33,23 @@ def combinations_to_str(game_state, all_combinations):
     return ret
 
 
-def plot_kripke_model(game_state, all_combinations):
-    s = combinations_to_str(game_state, all_combinations)
-
-    G = build_graph(s)
+def draw_graph(G, layout='circo'):
     G.graph['rankdir'] = 'LR'
     G.graph['dpi'] = 120
-    G.graph['layout'] = 'circo'
+    G.graph['layout'] = layout
     draw(G)
+
+
+def plot_local_kripke_model(game_state, all_combinations):
+    s = combinations_to_str(game_state, all_combinations)
+    G = build_graph(s)
+    draw_graph(G)
+
+
+def plot_global_kripke_model(state_combination_pairs):
+    colors = ['red', 'green', 'blue', 'black']
+    G = nx.MultiDiGraph()
+    for (game_state, all_combinations), color in zip(state_combination_pairs, colors):
+        s = combinations_to_str(game_state, all_combinations)
+        G = build_graph(s, G, color=color)
+    draw_graph(G, layout='dot')

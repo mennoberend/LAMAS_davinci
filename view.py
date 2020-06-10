@@ -22,6 +22,11 @@ class ExtendedCanvas(tk.Canvas):
 
         self.text = ["Press space to continue to the next turn.", "Press escape to leave the game."]
 
+    def draw_button(self, location, text, action):
+        button1 = tk.Button(self, text=text, command=action, anchor=tk.W)
+        button1.configure(width=15, activebackground="#33B5E5", relief=tk.FLAT)
+        self.create_window(location[0], location[1], anchor=tk.NW, window=button1)
+
     def draw_rectangle(self, x, y, width, height, *args, **kwargs):
         self.create_rectangle(x, y, x + width, y + height, *args, **kwargs)
 
@@ -51,11 +56,8 @@ class ExtendedCanvas(tk.Canvas):
                              fill="black", font=f"Times 7", text=str(idx + 1))
             tile_x += self.tile_spacing + self.tile_width
 
-        button1 = tk.Button(self, text="Local Kripke Model", command=lambda: player.plot_local_kripke_model(game),
-                            anchor=tk.W)
-        button1.configure(width=15, activebackground="#33B5E5", relief=tk.FLAT)
-        button1_window = self.create_window(location[0], location[1] - 35, anchor=tk.NW, window=button1)
-
+        self.draw_button((location[0], location[1] - 35), "Local Kripke Model",
+                         lambda: player.plot_local_kripke_model(game))
 
     def draw_table(self, game):
         canvas_width, canvas_height = self.winfo_width(), self.winfo_height()
@@ -108,6 +110,8 @@ class ExtendedCanvas(tk.Canvas):
                              font="Times 20 italic bold", text="Your drawn tile")
 
         self.draw_text_screen((25, canvas_height - 200), (350, 175))
+
+        self.draw_button((10, 10), "Global Kripke Model", lambda: game.plot_complete_kripke_model())
 
 
 class View:

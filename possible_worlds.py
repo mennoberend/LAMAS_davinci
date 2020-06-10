@@ -1,4 +1,4 @@
-from kripke_plotter import plot_kripke_model
+from kripke_plotter import plot_local_kripke_model
 from tile import Tile
 import itertools
 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     player_tiles = [['b1', 'b4', 'b5', 'w6'], ['b*', 'w*', 'w*', 'b*'], ['w*', 'b*', 'w*', 'w*']]
     game_state = GameState(player_tiles)
     all_combinations = possible_worlds(game_state, verbose=True)
-    plot_kripke_model(game_state, all_combinations)
+    plot_local_kripke_model(game_state, all_combinations)
 
     # own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5']))
     # other_player_colors = [['b', 'w', 'w'], ['w', 'b', 'w']]

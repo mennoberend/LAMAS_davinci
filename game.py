@@ -1,6 +1,8 @@
 import random
 
+from kripke_plotter import plot_global_kripke_model
 from player import SimpleRandomPlayer, HumanControlledPlayer
+from possible_worlds import possible_worlds
 from tile import Tile
 
 
@@ -34,3 +36,13 @@ class Game:
 
     def take_tile_from_table(self):
         return self.unplayed_tiles.pop() if self.unplayed_tiles else None
+
+    def plot_complete_kripke_model(self):
+        state_combinations_pairs = []
+        for player in self.players:
+            game_state = player.get_local_game_state(self)
+            # Calculate possible worlds
+            all_possible_worlds = possible_worlds(game_state)
+            state_combinations_pairs.append((game_state, all_possible_worlds))
+        # Plot the kripke model
+        plot_global_kripke_model(state_combinations_pairs)
