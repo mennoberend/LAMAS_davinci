@@ -1,3 +1,5 @@
+import random
+import time
 from math import exp
 from tkinter import simpledialog
 
@@ -26,30 +28,40 @@ class Player:
         drawn_tile = game.take_tile_from_table()
 
         # Make first guess
-        chosen_player, tile_idx, guessed_tile = self.make_guess(game, drawn_tile, is_optional=False,
-                                                                view=view)
+        if not self.guess_wrapper(game, drawn_tile, is_optional=False, view=view):
+            return
+
+        # Optionally make more guesses
+        while True:
+            if game.has_ended():
+                return
+            view.canvas.draw_game(game)  # Doesn't work
+            if not self.guess_wrapper(game, drawn_tile, is_optional=True, view=view):
+                return
+
+    def guess_wrapper(self, game, drawn_tile, is_optional=False, view=None):
+        # Make the guess
+        chosen_player, tile_idx, guessed_tile = self.make_guess(game, drawn_tile, is_optional=is_optional, view=view)
+
+        # If it was a optional guess, the agent can skip and he will get an extra tile
+        if is_optional and chosen_player is None:
+            if drawn_tile is not None:
+                self.add_tile(drawn_tile)
+            return False
+
+        # Print the guess
+        view.canvas.text.append(
+            f"Player {self.name} guesses that tile {tile_idx + 1} of Player {chosen_player.name} is {guessed_tile}"
+        )
+
+        # Check if the guess was correct, if the drawn tile is added visible to the other players
         correct = chosen_player.handle_guess(tile_idx, guessed_tile)
         if not correct:
             if drawn_tile is not None:
                 drawn_tile.become_visible()
                 self.add_tile(drawn_tile)
-            return
 
-        # Optionally make more guesses
-        while True:
-            chosen_player, tile_idx, guessed_tile = self.make_guess(game, drawn_tile, is_optional=True,
-                                                                    view=view)
-            if chosen_player is None:
-                break
-            correct = chosen_player.handle_guess(tile_idx, guessed_tile)
-            if not correct:
-                if drawn_tile is not None:
-                    drawn_tile.become_visible()
-                    self.add_tile(drawn_tile)
-                return
-
-        if drawn_tile is not None:
-            self.add_tile(drawn_tile)
+        return correct
 
     def make_guess(self, game, drawn_tile, is_optional=False, view=None):
         raise NotImplementedError("Please implement this function in a child class")
@@ -71,6 +83,9 @@ class Player:
     def __eq__(self, other):
         return self.name == other.name
 
+    def __str__(self):
+        return f"Player {self.name}"
+
     def add_tile(self, tile):
         self.tiles.append(tile)
         self.tiles.sort()
@@ -90,7 +105,7 @@ class Player:
         # Calculate possible worlds
         all_possible_worlds = possible_worlds(game_state)
         # Plot the kripke model
-        plot_local_kripke_model(game_state, all_possible_worlds)
+        plot_local_kripke_model(game_state, all_possible_worlds, ['red', 'green', 'blue', 'purple'][self.name])
 
 
 class SimpleRandomPlayer(Player):
@@ -119,9 +134,6 @@ class SimpleRandomPlayer(Player):
                 sorted([t for t in possible_tiles if t.color == chosen_tile.color], reverse=True)
             )
 
-        view.canvas.text.append(
-            f"Player {self.name} guesses that tile {tile_idx + 1} of Player {chosen_player.name} is {guess}"
-        )
         return chosen_player, tile_idx, guess
 
 
@@ -147,10 +159,6 @@ class HumanControlledPlayer(Player):
         prompt = "\nWhat tile do you think the player has. (Enter as b1 or w6)"
         guess = Tile.from_string(self.save_prompt(prompt, [str(t) for t in Tile.complete_set(game.max_tile_number)], view.master))
 
-        view.canvas.text.append(
-            f"Player {self.name} guesses that tile {tile_idx + 1} of Player {chosen_player.name} is {guess}"
-        )
-
         return chosen_player, tile_idx, guess
 
     @staticmethod
@@ -169,3 +177,38 @@ class HumanControlledPlayer(Player):
                                              'Your response is not allowed, please retry...\n' + prompt,
                                              parent=application_window)
         return ret
+
+
+class LogicalPlayer(Player):
+    def kripke_options_per_tile(self, game_state, all_possible_worlds):
+        options_per_tile = [[] for _ in all_possible_worlds[0]]
+
+        known_tiles = [True if '*' not in t else False for t in game_state.flat_player_tiles]
+
+        for world in all_possible_worlds:
+            for tile_idx, is_known in zip(range(len(world)), known_tiles):
+                if not is_known:
+                    options_per_tile[tile_idx].append(world[tile_idx])
+
+        return options_per_tile
+
+    def make_guess(self, game, drawn_tile, is_optional=False, view=None):
+        game_state = self.get_local_game_state(game)
+        all_possible_worlds = possible_worlds(game_state)
+
+        if is_optional and len(all_possible_worlds) > 1:
+            return None, None, None
+
+        options_per_tile = self.kripke_options_per_tile(game_state, all_possible_worlds)
+        # Get the tile with the most options
+        flat_tile_idx = np.argmax([len(np.unique(tile)) for tile in options_per_tile])
+
+        # Randomly choose a tile from from the option, options that are true in more world therefore have a higher
+        # chance of being picked
+        guess = random.choice(options_per_tile[flat_tile_idx])
+        player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(flat_tile_idx)
+        chosen_player = game.players[player_idx]
+
+        # print('\n'.join(map(lambda t: str(list(map(str, t))), options_per_tile)))
+        # print(flat_tile_idx)
+        return chosen_player, tile_idx, guess

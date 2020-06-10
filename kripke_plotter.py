@@ -37,19 +37,22 @@ def draw_graph(G, layout='circo'):
     G.graph['rankdir'] = 'LR'
     G.graph['dpi'] = 120
     G.graph['layout'] = layout
+    if layout not in {'circo', 'dot'}:
+        G.graph['ranksep'] = 3
+        G.graph['nodesep'] = 2.5
     draw(G)
 
 
-def plot_local_kripke_model(game_state, all_combinations):
+def plot_local_kripke_model(game_state, all_combinations, color='red'):
     s = combinations_to_str(game_state, all_combinations)
-    G = build_graph(s)
+    G = build_graph(s, color=color)
     draw_graph(G)
 
 
 def plot_global_kripke_model(state_combination_pairs):
-    colors = ['red', 'green', 'blue', 'black']
+    colors = ['red', 'green', 'blue', 'purple']
     G = nx.MultiDiGraph()
     for (game_state, all_combinations), color in zip(state_combination_pairs, colors):
         s = combinations_to_str(game_state, all_combinations)
         G = build_graph(s, G, color=color)
-    draw_graph(G, layout='dot')
+    draw_graph(G, layout='sfdp')  # dot or sfdp are the best options

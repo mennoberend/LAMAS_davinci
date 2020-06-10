@@ -33,6 +33,11 @@ class GameState:
         s += '\nunknown tiles: ' + ' '.join(map(str, self.unknown_tiles))
         return s
 
+    def flat_idx_to_player_and_tile_idx(self, flat_idx):
+        for player_idx, end_of_player_idx in enumerate(self.end_of_player_idxs):
+            if flat_idx < end_of_player_idx:
+                return player_idx, flat_idx - ([0] + self.end_of_player_idxs)[player_idx]
+
 
 def permutation_adheres_to_game_rules(added_tile, previous_tile, game_state, idx):
     if game_state.flat_player_tiles[idx][0] != added_tile.color:  # Make sure the color matches what we know

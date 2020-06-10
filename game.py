@@ -31,8 +31,9 @@ class Game:
                '\n'
 
     def play_round(self, view=None):
-        self.players[self.current_player_idx].play_round(self, view=view)
-        self.current_player_idx = (self.current_player_idx + 1) % len(self.players)
+        if not self.has_ended():
+            self.players[self.current_player_idx].play_round(self, view=view)
+            self.current_player_idx = (self.current_player_idx + 1) % len(self.players)
 
     def take_tile_from_table(self):
         return self.unplayed_tiles.pop() if self.unplayed_tiles else None
@@ -46,3 +47,12 @@ class Game:
             state_combinations_pairs.append((game_state, all_possible_worlds))
         # Plot the kripke model
         plot_global_kripke_model(state_combinations_pairs)
+
+    def winner(self):
+        for player in self.players:
+            if all([all([t.visible for t in p.tiles]) for p in self.players if p.name != player.name]):
+                return player
+        return None
+
+    def has_ended(self):
+        return self.winner() is not None

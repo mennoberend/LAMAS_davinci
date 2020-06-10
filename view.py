@@ -2,7 +2,7 @@ import sys
 import tkinter as tk
 
 from game import Game
-from player import HumanControlledPlayer
+from player import HumanControlledPlayer, LogicalPlayer
 
 
 class ExtendedCanvas(tk.Canvas):
@@ -22,9 +22,9 @@ class ExtendedCanvas(tk.Canvas):
 
         self.text = ["Press space to continue to the next turn.", "Press escape to leave the game."]
 
-    def draw_button(self, location, text, action):
+    def draw_button(self, location, text, action, color):
         button1 = tk.Button(self, text=text, command=action, anchor=tk.W)
-        button1.configure(width=15, activebackground="#33B5E5", relief=tk.FLAT)
+        button1.configure(width=15, activebackground=color, relief=tk.FLAT)  # "#33B5E5"
         self.create_window(location[0], location[1], anchor=tk.NW, window=button1)
 
     def draw_rectangle(self, x, y, width, height, *args, **kwargs):
@@ -41,11 +41,11 @@ class ExtendedCanvas(tk.Canvas):
             self.create_text(location[0] + self.tile_width // 2, location[1] + self.tile_height // 2, fill=text_color,
                              font="Times 20 italic bold", text=str(tile.number))
 
-    def draw_player(self, player, location, game):
+    def draw_player(self, player, location, game, color):
         self.draw_rectangle(location[0], location[1], self.player_width, self.player_height, fill="gray")
         human_player_text = " (You)" if isinstance(player, HumanControlledPlayer) else ""
         self.create_text(location[0] + self.player_width // 2, location[1] + int(self.player_height * 1.5),
-                         fill="darkblue", font="Times 20 italic bold", text=f"Player {player.name}{human_player_text}")
+                         fill=color, font="Times 20 bold", text=f"Player {player.name}{human_player_text}")
 
         tile_x = location[0] + self.tile_spacing
         tile_y = location[1] + self.player_height // 10
@@ -57,7 +57,7 @@ class ExtendedCanvas(tk.Canvas):
             tile_x += self.tile_spacing + self.tile_width
 
         self.draw_button((location[0], location[1] - 35), "Local Kripke Model",
-                         lambda: player.plot_local_kripke_model(game))
+                         lambda: player.plot_local_kripke_model(game), color)
 
     def draw_table(self, game):
         canvas_width, canvas_height = self.winfo_width(), self.winfo_height()
@@ -95,9 +95,9 @@ class ExtendedCanvas(tk.Canvas):
             (canvas_width - (self.player_width + 50), canvas_height // 2 - self.player_height // 2),
             (canvas_width // 2 - self.player_width // 4, canvas_height - (50 + self.player_height))
         ]
-
-        for player, loc in zip(game.players, player_locations):
-            self.draw_player(player, loc, game)
+        player_colors = ['red', 'green', 'blue', 'purple']
+        for player, loc, color in zip(game.players, player_locations, player_colors):
+            self.draw_player(player, loc, game, color)
 
         # Table
         self.draw_table(game)
@@ -111,7 +111,7 @@ class ExtendedCanvas(tk.Canvas):
 
         self.draw_text_screen((25, canvas_height - 200), (350, 175))
 
-        self.draw_button((10, 10), "Global Kripke Model", lambda: game.plot_complete_kripke_model())
+        self.draw_button((10, 10), "Global Kripke Model", lambda: game.plot_complete_kripke_model(), 'white')
 
 
 class View:
@@ -137,8 +137,11 @@ class View:
         tk.mainloop()
 
     def next_round(self):
-        game.play_round(view=self)
-        self.canvas.text.append(f"It is Player {self.game.current_player_idx}'s turn!")
+        self.game.play_round(view=self)
+        if self.game.has_ended():
+            self.canvas.text.append(f"{self.game.winner()} has won the game!")
+        else:
+            self.canvas.text.append(f"It is Player {self.game.current_player_idx}'s turn!")
         self.canvas.draw_game(self.game)
 
     def close(self):
@@ -149,9 +152,10 @@ class View:
 if __name__ == "__main__":
     game = Game(
         amount_of_players=2,
-        amount_of_starting_tiles=3,
-        max_tile_number=5,
-        add_human_player=True
+        amount_of_starting_tiles=4,
+        max_tile_number=11,
+        add_human_player=True,
+        player_class=LogicalPlayer
     )
 
     v = View(game)
