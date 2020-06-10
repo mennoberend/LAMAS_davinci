@@ -36,6 +36,7 @@ class Player:
             if game.has_ended():
                 return
             view.canvas.draw_game(game)  # Doesn't work
+            time.sleep(.5)
             if not self.guess_wrapper(game, drawn_tile, is_optional=True, view=view):
                 return
 

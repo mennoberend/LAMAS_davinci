@@ -112,6 +112,7 @@ class ExtendedCanvas(tk.Canvas):
         self.draw_text_screen((25, canvas_height - 200), (350, 175))
 
         self.draw_button((10, 10), "Global Kripke Model", lambda: game.plot_complete_kripke_model(), 'white')
+        self.update()
 
 
 class View:
