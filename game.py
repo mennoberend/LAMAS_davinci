@@ -5,9 +5,10 @@ from tile import Tile
 
 
 class Game:
-    def __init__(self, amount_of_players=3, amount_of_starting_tiles=4, player_class=SimpleRandomPlayer, add_human_player=False):
-        self.unplayed_tiles = Tile.complete_set()
-        self.tiles_open_on_table = []
+    def __init__(self, amount_of_players=3, amount_of_starting_tiles=4, max_tile_number=7,
+                 player_class=SimpleRandomPlayer, add_human_player=False):
+        self.max_tile_number = max_tile_number
+        self.unplayed_tiles = Tile.complete_set(max_number=max_tile_number)
         random.shuffle(self.unplayed_tiles)
 
         self.players = []
@@ -25,7 +26,6 @@ class Game:
     def game_str(self):
         return 'GAME STATE:\n' + \
                '\n'.join(p.game_str() for p in self.players) + \
-               f'\nTable: {" ".join(t.game_str() for t in self.tiles_open_on_table)}' + \
                '\n'
 
     def play_round(self, view=None):
@@ -34,7 +34,3 @@ class Game:
 
     def take_tile_from_table(self):
         return self.unplayed_tiles.pop() if self.unplayed_tiles else None
-
-    def put_open_on_table(self, tile):
-        tile.become_visible()
-        self.tiles_open_on_table.append(tile)

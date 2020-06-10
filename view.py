@@ -14,16 +14,16 @@ class ExtendedCanvas(tk.Canvas):
         self.player_height = player_height
 
         self.table_height = 3 * player_height
-        self.table_width = int(1.5 * player_width)
+        self.table_width = int(0.75 * player_width)
 
         self.tile_height = int(self.player_height * .8)
-        self.tile_width = self.player_width // 7
+        self.tile_width = self.player_width // 9
         self.tile_spacing = self.tile_width // 4
 
         self.text = ["Press space to continue to the next turn.", "Press escape to leave the game."]
 
     def draw_rectangle(self, x, y, width, height, *args, **kwargs):
-        self.create_rectangle(x, y, x + width, y+height, *args, **kwargs)
+        self.create_rectangle(x, y, x + width, y + height, *args, **kwargs)
 
     def draw_tile(self, tile, location, force_visible=False):
         color = "black" if tile.color == 'b' else "white"
@@ -57,16 +57,9 @@ class ExtendedCanvas(tk.Canvas):
         table_y = canvas_height // 2 - self.table_height // 2
         self.draw_rectangle(table_x, table_y, self.table_width, self.table_height, fill="brown")
 
-        # Played tiles
-        tile_x = table_x + self.tile_spacing
-        tile_y = table_y + self.table_height // 20
-        for tile in game.tiles_open_on_table:
-            self.draw_tile(tile, (tile_x, tile_y))
-            tile_x += self.tile_spacing + self.tile_width
-
         # Unplayed tiles
-        tile_x = table_x + int(self.table_width * 0.6)
-        tile_y = table_y + self.table_height // 20 + self.table_height // 2
+        tile_x = table_x + self.table_width // 2 - self.tile_width // 2
+        tile_y = table_y + self.table_height // 2 - self.tile_height // 2
         for tile in game.unplayed_tiles:
             self.draw_tile(tile, (tile_x, tile_y))
             tile_x += self.tile_width // 3
@@ -92,7 +85,7 @@ class ExtendedCanvas(tk.Canvas):
             (canvas_width // 2 - self.player_width // 2, self.player_height),
             (50, canvas_height // 2 - self.player_height // 2),
             (canvas_width - (self.player_width + 50), canvas_height // 2 - self.player_height // 2),
-            (canvas_width // 2 - self.player_width // 2, canvas_height - (50 + self.player_height))
+            (canvas_width // 2 - self.player_width // 4, canvas_height - (50 + self.player_height))
         ]
 
         for player, loc in zip(game.players, player_locations):
@@ -120,7 +113,7 @@ class View:
         self.master.title("Da Vinci Code")
         self.master.bind('<Escape>', lambda _: self.close())
         self.master.bind('<space>', lambda _: self.next_round())
-        self.canvas = ExtendedCanvas(master=self.master, width=window_width, height=window_height, player_width=250,
+        self.canvas = ExtendedCanvas(master=self.master, width=window_width, height=window_height, player_width=350,
                                      player_height=75)
         self.canvas.pack()
 
@@ -145,8 +138,9 @@ class View:
 
 if __name__ == "__main__":
     game = Game(
-        amount_of_players=1,
+        amount_of_players=3,
         amount_of_starting_tiles=3,
+        max_tile_number=8,
         add_human_player=True
     )
 

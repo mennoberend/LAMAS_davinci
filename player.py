@@ -29,7 +29,8 @@ class Player:
         correct = chosen_player.handle_guess(tile_idx, guessed_tile)
         if not correct:
             if drawn_tile is not None:
-                game.put_open_on_table(drawn_tile)
+                drawn_tile.become_visible()
+                self.add_tile(drawn_tile)
             return
 
         # Optionally make more guesses
@@ -41,18 +42,23 @@ class Player:
             correct = chosen_player.handle_guess(tile_idx, guessed_tile)
             if not correct:
                 if drawn_tile is not None:
-                    game.put_open_on_table(drawn_tile)
+                    drawn_tile.become_visible()
+                    self.add_tile(drawn_tile)
                 return
 
         if drawn_tile is not None:
-            self.tiles.append(drawn_tile)
-            self.tiles.sort()
+            self.add_tile(drawn_tile)
 
     def make_guess(self, game, drawn_tile, is_optional=False, view=None):
         raise NotImplementedError("Please implement this function in a child class")
 
     def all_known_tiles(self, game):
-        return set(self.tiles + game.tiles_open_on_table)
+        ret = []
+        for player in game.players:
+            for tile in player.tiles:
+                if tile.visible:
+                    ret.append(tile)
+        return set(ret)
 
     def handle_guess(self, tile_idx, guess):
         correct = self.tiles[tile_idx] == guess
@@ -63,12 +69,16 @@ class Player:
     def __eq__(self, other):
         return self.name == other.name
 
+    def add_tile(self, tile):
+        self.tiles.append(tile)
+        self.tiles.sort()
+
 
 class SimpleRandomPlayer(Player):
     def make_guess(self, game, drawn_tile, is_optional=False, view=None):
         if is_optional:
             return None, None, None
-        possible_tiles = list(set(Tile.complete_set()) - self.all_known_tiles(game) - {drawn_tile})
+        possible_tiles = list(set(Tile.complete_set(max_number=game.max_tile_number)) - self.all_known_tiles(game) - {drawn_tile})
 
         # Try to get the player with the most invisible tiles
         chosen_player = sorted([p for p in game.players if p.name != self.name],
@@ -118,7 +128,7 @@ class HumanControlledPlayer(Player):
 
         # Choose the tile
         prompt = "\nWhat tile do you think the player has. (Enter as b1 or w6)"
-        guess = Tile.from_string(self.save_prompt(prompt, [str(t) for t in Tile.complete_set()], view.master))
+        guess = Tile.from_string(self.save_prompt(prompt, [str(t) for t in Tile.complete_set(game.max_tile_number)], view.master))
 
         view.canvas.text.append(
             f"Player {self.name} guesses that tile {tile_idx + 1} of Player {chosen_player.name} is {guess}"

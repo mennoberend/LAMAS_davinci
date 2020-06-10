@@ -1,9 +1,10 @@
+from kripke_plotter import plot_kripke_model
 from tile import Tile
 import itertools
 
 
 class GameState:
-    def __init__(self, player_tiles, tiles_open_on_table, max_tile_number=6):
+    def __init__(self, player_tiles, max_tile_number=6):
         self.player_tiles = player_tiles
         self.flat_player_tiles = [t for p in player_tiles for t in p]
 
@@ -14,13 +15,11 @@ class GameState:
             self.end_of_player_idxs.append(cumulative_length + player_length)
             cumulative_length += player_length
 
-        self.tiles_open_on_table = tiles_open_on_table
         self.max_tile_number = max_tile_number
 
     @property
     def known_tiles(self):
-        return [Tile.from_string(t) for t in self.flat_player_tiles if '*' not in t] + \
-               [Tile.from_string(t) for t in self.tiles_open_on_table]
+        return [Tile.from_string(t) for t in self.flat_player_tiles if '*' not in t]
 
     @property
     def unknown_tiles(self):
@@ -30,7 +29,6 @@ class GameState:
         s = "players tiles:\n"
         for p in player_tiles:
             s += ' '.join(p) + '\n'
-        s += 'on table:\n' + ' '.join(self.tiles_open_on_table)
         s += '\nknown tiles: ' + ' '.join(map(str, self.known_tiles))
         s += '\nunknown tiles: ' + ' '.join(map(str, self.unknown_tiles))
         return s
@@ -83,37 +81,41 @@ def possible_worlds(game_state):
 
     print(f"There are {len(all_combinations)} possible worlds after using what we see from our opponents:")
 
-    # for i, c in enumerate(all_combinations):
-    #     print(f'World {i}')
-    #     start_idx = 0
-    #     for players_amount_of_tiles in map(len, game_state.player_tiles):
-    #         print(' '.join(str(t) for t in c[start_idx:start_idx + players_amount_of_tiles]))
-    #         start_idx += players_amount_of_tiles
-    #     print()
+    for i, c in enumerate(all_combinations):
+        print(f'World {i}')
+        start_idx = 0
+        for players_amount_of_tiles in map(len, game_state.player_tiles):
+            print(' '.join(str(t) for t in c[start_idx:start_idx + players_amount_of_tiles]))
+            start_idx += players_amount_of_tiles
+        print()
+
+    return all_combinations
 
 
 if __name__ == "__main__":
     # own_tiles = list(map(lambda s: Tile.from_string(s), ['w1', 'b5', 'w5', 'w6']))
     # other_player_colors = [['b', 'b', 'w', 'w'], ['b', 'w', 'b', 'b']]
     player_tiles = [['w1', 'b5', 'w5', 'w6'], ['b*', 'b*', 'w*', 'w*'], ['b*', 'w*', 'b*', 'b*']]
-    game_state = GameState(player_tiles, [])
+    game_state = GameState(player_tiles)
     possible_worlds(game_state)
 
 
     # own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5', 'w6']))
     # other_player_colors = [['b', 'w', 'w', 'b'], ['w', 'b', 'w', 'w']]
     player_tiles = [['b1', 'b4', 'b5', 'w6'], ['b*', 'w*', 'w*', 'b*'], ['w*', 'b*', 'w*', 'w*']]
-    game_state = GameState(player_tiles, [])
-    possible_worlds(game_state)
+    game_state = GameState(player_tiles)
+    all_combinations = possible_worlds(game_state)
+    plot_kripke_model(game_state, all_combinations)
 
     # own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5']))
     # other_player_colors = [['b', 'w', 'w'], ['w', 'b', 'w']]
-    player_tiles = [['b1', 'b4', 'b5'], ['b*', 'w*', 'w*'], ['w*', 'b*', 'w*']]
-    game_state = GameState(player_tiles, [])
-    possible_worlds(game_state)
+    # player_tiles = [['b1', 'b4', 'b5'], ['b*', 'w*', 'w*'], ['w*', 'b*', 'w*']]
+    # game_state = GameState(player_tiles)
+    # possible_worlds(game_state)
 
     # own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5', 'w6']))
     # other_player_colors = [['b', 'w', 'w', 'b']]
-    player_tiles = [['b1', 'b4', 'b5', 'w6'], ['b*', 'w*', 'w*', 'b*']]
-    game_state = GameState(player_tiles, [], max_tile_number=6)
-    possible_worlds(game_state)
+    # player_tiles = [['b1', 'b4', 'b5', 'w6'], ['b*', 'w*', 'w*', 'b*']]
+    # game_state = GameState(player_tiles, max_tile_number=6)
+    # all_combinations = possible_worlds(game_state)
+
