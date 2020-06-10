@@ -32,7 +32,6 @@ def combinations_to_str(game_state, all_combinations):
 def plot_kripke_model(game_state, all_combinations):
     s = combinations_to_str(game_state, all_combinations)
 
-    print(len(s))
     G = build_graph(s)
     G.graph['rankdir'] = 'LR'
     G.graph['dpi'] = 120

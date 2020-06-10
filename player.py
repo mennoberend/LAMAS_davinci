@@ -3,6 +3,8 @@ from tkinter import simpledialog
 
 import numpy as np
 
+from kripke_plotter import plot_kripke_model
+from possible_worlds import GameState, possible_worlds
 from tile import Tile
 
 
@@ -73,6 +75,23 @@ class Player:
         self.tiles.append(tile)
         self.tiles.sort()
 
+    def get_local_game_state(self, game):
+        # Build the game state
+        player_tiles = []
+        for player in game.players:
+            if player.name == self.name:
+                player_tiles.append([str(t) for t in player.tiles])
+            else:
+                player_tiles.append([t.game_str() for t in player.tiles])
+        return GameState(player_tiles, max_tile_number=game.max_tile_number)
+
+    def plot_local_kripke_model(self, game):
+        game_state = self.get_local_game_state(game)
+        # Calculate possible worlds
+        all_possible_worlds = possible_worlds(game_state)
+        # Plot the kripke model
+        plot_kripke_model(game_state, all_possible_worlds)
+
 
 class SimpleRandomPlayer(Player):
     def make_guess(self, game, drawn_tile, is_optional=False, view=None):
@@ -108,8 +127,6 @@ class SimpleRandomPlayer(Player):
 
 class HumanControlledPlayer(Player):
     def make_guess(self, game, drawn_tile, is_optional=False, view=None):
-        print(f"\nYour tiles are: {' '.join(map(str, self.tiles))}")
-        print(f"You just drew {drawn_tile}.")
         if view:
             view.canvas.draw_game(game, drawn_tile=drawn_tile)
 

@@ -36,7 +36,7 @@ class ExtendedCanvas(tk.Canvas):
             self.create_text(location[0] + self.tile_width // 2, location[1] + self.tile_height // 2, fill=text_color,
                              font="Times 20 italic bold", text=str(tile.number))
 
-    def draw_player(self, player, location):
+    def draw_player(self, player, location, game):
         self.draw_rectangle(location[0], location[1], self.player_width, self.player_height, fill="gray")
         human_player_text = " (You)" if isinstance(player, HumanControlledPlayer) else ""
         self.create_text(location[0] + self.player_width // 2, location[1] + int(self.player_height * 1.5),
@@ -50,6 +50,12 @@ class ExtendedCanvas(tk.Canvas):
             self.create_text(tile_x + self.tile_width // 2, tile_y + int(self.tile_height * 1.3),
                              fill="black", font=f"Times 7", text=str(idx + 1))
             tile_x += self.tile_spacing + self.tile_width
+
+        button1 = tk.Button(self, text="Local Kripke Model", command=lambda: player.plot_local_kripke_model(game),
+                            anchor=tk.W)
+        button1.configure(width=15, activebackground="#33B5E5", relief=tk.FLAT)
+        button1_window = self.create_window(location[0], location[1] - 35, anchor=tk.NW, window=button1)
+
 
     def draw_table(self, game):
         canvas_width, canvas_height = self.winfo_width(), self.winfo_height()
@@ -89,7 +95,7 @@ class ExtendedCanvas(tk.Canvas):
         ]
 
         for player, loc in zip(game.players, player_locations):
-            self.draw_player(player, loc)
+            self.draw_player(player, loc, game)
 
         # Table
         self.draw_table(game)
@@ -138,9 +144,9 @@ class View:
 
 if __name__ == "__main__":
     game = Game(
-        amount_of_players=3,
+        amount_of_players=2,
         amount_of_starting_tiles=3,
-        max_tile_number=8,
+        max_tile_number=5,
         add_human_player=True
     )
 

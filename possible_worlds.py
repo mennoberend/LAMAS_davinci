@@ -27,7 +27,7 @@ class GameState:
 
     def __str__(self):
         s = "players tiles:\n"
-        for p in player_tiles:
+        for p in self.player_tiles:
             s += ' '.join(p) + '\n'
         s += '\nknown tiles: ' + ' '.join(map(str, self.known_tiles))
         s += '\nunknown tiles: ' + ' '.join(map(str, self.unknown_tiles))
@@ -74,20 +74,22 @@ def perms(unused_tiles, game_state, idx=0, previous_tile=None):
     return result
 
 
-def possible_worlds(game_state):
+def possible_worlds(game_state, verbose=False):
     # print(f"Our own blocks: {' '.join(map(str, own_tiles))}")
-    print(f"\nGame state:\n{str(game_state)}")
+    if verbose:
+        print(f"\nGame state:\n{str(game_state)}")
     all_combinations = perms(game_state.unknown_tiles, game_state)
 
-    print(f"There are {len(all_combinations)} possible worlds after using what we see from our opponents:")
+    if verbose:
+        print(f"There are {len(all_combinations)} possible worlds after using what we see from our opponents:")
 
-    for i, c in enumerate(all_combinations):
-        print(f'World {i}')
-        start_idx = 0
-        for players_amount_of_tiles in map(len, game_state.player_tiles):
-            print(' '.join(str(t) for t in c[start_idx:start_idx + players_amount_of_tiles]))
-            start_idx += players_amount_of_tiles
-        print()
+        for i, c in enumerate(all_combinations):
+            print(f'World {i}')
+            start_idx = 0
+            for players_amount_of_tiles in map(len, game_state.player_tiles):
+                print(' '.join(str(t) for t in c[start_idx:start_idx + players_amount_of_tiles]))
+                start_idx += players_amount_of_tiles
+            print()
 
     return all_combinations
 
@@ -97,14 +99,14 @@ if __name__ == "__main__":
     # other_player_colors = [['b', 'b', 'w', 'w'], ['b', 'w', 'b', 'b']]
     player_tiles = [['w1', 'b5', 'w5', 'w6'], ['b*', 'b*', 'w*', 'w*'], ['b*', 'w*', 'b*', 'b*']]
     game_state = GameState(player_tiles)
-    possible_worlds(game_state)
+    possible_worlds(game_state, verbose=True)
 
 
     # own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5', 'w6']))
     # other_player_colors = [['b', 'w', 'w', 'b'], ['w', 'b', 'w', 'w']]
     player_tiles = [['b1', 'b4', 'b5', 'w6'], ['b*', 'w*', 'w*', 'b*'], ['w*', 'b*', 'w*', 'w*']]
     game_state = GameState(player_tiles)
-    all_combinations = possible_worlds(game_state)
+    all_combinations = possible_worlds(game_state, verbose=True)
     plot_kripke_model(game_state, all_combinations)
 
     # own_tiles = list(map(lambda s: Tile.from_string(s), ['b1', 'b4', 'b5']))
