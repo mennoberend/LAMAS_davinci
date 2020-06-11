@@ -154,7 +154,7 @@ if __name__ == "__main__":
     game = Game(
         amount_of_players=2,
         amount_of_starting_tiles=4,
-        max_tile_number=11,
+        max_tile_number=6,
         add_human_player=True,
         player_class=LogicalPlayer
     )

@@ -6,7 +6,7 @@ def build_graph(possible_worlds, G=None, color='red'):
     G = G or nx.MultiDiGraph()  # create empty graph
 
     if len(possible_worlds) > 25:
-        print("To many worlds unable to make plot:(")
+        print(f"There are {len(possible_worlds)} worlds in the Kripke model, which is to big to plot.")
         return G
 
     for world in possible_worlds:  # msg is python email.Message.Message object
