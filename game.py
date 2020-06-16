@@ -36,7 +36,8 @@ class Game:
             self.current_player_idx = (self.current_player_idx + 1) % len(self.players)
 
     def take_tile_from_table(self):
-        return self.unplayed_tiles.pop() if self.unplayed_tiles else None
+        return None
+        # return self.unplayed_tiles.pop() if self.unplayed_tiles else None
 
     def plot_complete_kripke_model(self):
         state_combinations_pairs = []

@@ -32,4 +32,4 @@ class Tile:
         return self.color == other.color and self.number == other.number
 
     def __hash__(self):
-        return hash((self.color, self.number))
+        return hash((self.color, self.number, 190274))

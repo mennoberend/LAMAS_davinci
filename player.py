@@ -20,6 +20,8 @@ class Player:
     def __init__(self, starting_tiles, name):
         self.tiles = sorted(starting_tiles)
         self.name = name
+        self.impossible_tiles = None
+        self.impossible_worlds = []
 
     def game_str(self):
         return f"Player {self.name}: {' '.join(t.game_str() for t in self.tiles)}"
@@ -62,6 +64,11 @@ class Player:
                 drawn_tile.become_visible()
                 self.add_tile(drawn_tile)
 
+        # Update the players knowledge
+        for player in game.players:
+            player.add_knowledge(guessing_player=self, chosen_player=chosen_player, tile_idx=tile_idx,
+                                 guessed_tile=guessed_tile, correct=correct, game=game)
+
         return correct
 
     def make_guess(self, game, drawn_tile, is_optional=False, view=None):
@@ -99,7 +106,9 @@ class Player:
                 player_tiles.append([str(t) for t in player.tiles])
             else:
                 player_tiles.append([t.game_str() for t in player.tiles])
-        return GameState(player_tiles, max_tile_number=game.max_tile_number)
+
+
+        return GameState(player_tiles, self.impossible_tiles, max_tile_number=game.max_tile_number)
 
     def plot_local_kripke_model(self, game):
         game_state = self.get_local_game_state(game)
@@ -107,6 +116,55 @@ class Player:
         all_possible_worlds = possible_worlds(game_state)
         # Plot the kripke model
         plot_local_kripke_model(game_state, all_possible_worlds, ['red', 'green', 'blue', 'purple'][self.name])
+
+    def add_knowledge(self, guessing_player, chosen_player, tile_idx, guessed_tile, correct, game):
+        # Setup the arrays to store the knowledge in
+        game_state = self.get_local_game_state(game)
+        amount_of_player_tiles = len(game_state.flat_player_tiles)
+        if self.impossible_tiles is None or amount_of_player_tiles != len(self.impossible_tiles):
+            self.impossible_tiles = [[] for _ in range(amount_of_player_tiles)]
+
+        # Calculate some idxs belonging to relevant tiles
+        guessing_player_idx = game.players.index(guessing_player)
+        chosen_player_idx = game.players.index(chosen_player)
+        guessing_player_tile_idxs = game_state.flat_idxs_of_player(guessing_player_idx)
+        guessed_tile_flat_idx = game_state.player_and_tile_idx_to_flat_idx(chosen_player_idx, tile_idx)
+
+
+        # Guessing player can never have the guessed_tile
+        for flat_idx in guessing_player_tile_idxs:
+            self.impossible_tiles[flat_idx].append(guessed_tile)
+
+        if correct:
+            return
+
+        # The tile that was guessed cant be the guessed tile, since the guess was wrong
+        self.impossible_tiles[guessed_tile_flat_idx].append(guessed_tile)
+
+        # HARD PART
+
+        # calculate possible worlds
+        all_possible_worlds = possible_worlds(game_state)
+
+        # Group worlds were the guessing agents hand is that same.
+        groups = {}
+        guessing_player_start_idx, guessing_player_end_idx = guessing_player_tile_idxs[0], guessing_player_tile_idxs[-1]
+        for world in all_possible_worlds:
+            guessing_players_hand = ''.join(map(str, world[guessing_player_start_idx:guessing_player_end_idx]))
+            if guessing_players_hand in groups:
+                groups[guessing_players_hand].append(world)
+            else:
+                groups[guessing_players_hand] = [world]
+        groups = list(groups.values())
+        print(len(groups))
+
+        # if the guessed tile is not in the group we remove all worlds in the group
+        for group in groups:
+            # The guessed tile is not considered to be possible at the guessed location by the guessing agent
+            if not any(world[guessed_tile_flat_idx] == guessed_tile for world in group):
+                self.impossible_worlds.extend(map(lambda w: ''.join(map(str, w)), group))
+
+
 
 
 class SimpleRandomPlayer(Player):

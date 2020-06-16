@@ -4,9 +4,11 @@ import itertools
 
 
 class GameState:
-    def __init__(self, player_tiles, max_tile_number=6):
+    def __init__(self, player_tiles, impossible_tiles=None, impossible_worlds=None, max_tile_number=6):
         self.player_tiles = player_tiles
         self.flat_player_tiles = [t for p in player_tiles for t in p]
+        self.impossible_tiles = impossible_tiles or []
+        self.impossible_worlds = impossible_worlds or []
 
         # End of every player in the flat player tiles
         cumulative_length = 0
@@ -38,14 +40,25 @@ class GameState:
             if flat_idx < end_of_player_idx:
                 return player_idx, flat_idx - ([0] + self.end_of_player_idxs)[player_idx]
 
+    def flat_idxs_of_player(self, player_idx):
+        return list(range(([0] + self.end_of_player_idxs)[player_idx], self.end_of_player_idxs[player_idx]))
 
-def permutation_adheres_to_game_rules(added_tile, previous_tile, game_state, idx):
+    def player_and_tile_idx_to_flat_idx(self, player_idx, tile_idx):
+        return ([0] + self.end_of_player_idxs)[player_idx] + tile_idx
+
+
+
+def permutation_adheres_to_game_rules(added_tile: Tile, previous_tile, game_state, idx):
     if game_state.flat_player_tiles[idx][0] != added_tile.color:  # Make sure the color matches what we know
         return False
 
     if idx not in game_state.end_of_player_idxs and previous_tile is not None:
         if previous_tile > added_tile:
             return False
+
+    if game_state.impossible_tiles and added_tile in game_state.impossible_tiles[idx]:
+        # print(f"{added_tile} is impossible on {idx}, because its in {list(map(str, game_state.impossible_tiles[idx]))}")
+        return False
 
     return True
 
@@ -80,6 +93,8 @@ def perms(unused_tiles, game_state, idx=0, previous_tile=None):
 
 
 def possible_worlds(game_state, verbose=False):
+    print([list(map(str, a)) for a in game_state.impossible_tiles])
+    print(game_state.impossible_worlds)
     # print(f"Our own blocks: {' '.join(map(str, own_tiles))}")
     if verbose:
         print(f"\nGame state:\n{str(game_state)}")
