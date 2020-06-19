@@ -117,6 +117,21 @@ class Player:
         # Plot the kripke model
         plot_local_kripke_model(game_state, all_possible_worlds, ['red', 'green', 'blue', 'purple'][self.name])
 
+    def groups_for_player(self, game, player, game_state, all_possible_worlds):
+        player_idx = game.players.index(player)
+        player_tile_idxs = game_state.flat_idxs_of_player(player_idx)
+        player_start_idx, player_end_idx = player_tile_idxs[0], player_tile_idxs[-1]
+
+        groups = {}
+        for world in all_possible_worlds:
+            guessing_players_hand = ''.join(map(str, world[player_start_idx:player_end_idx]))
+            if guessing_players_hand in groups:
+                groups[guessing_players_hand].append(world)
+            else:
+                groups[guessing_players_hand] = [world]
+        groups = list(groups.values())
+        return groups
+
     def add_knowledge(self, guessing_player, chosen_player, tile_idx, guessed_tile, correct, game):
         # Setup the arrays to store the knowledge in
         game_state = self.get_local_game_state(game)
@@ -146,16 +161,9 @@ class Player:
         all_possible_worlds = possible_worlds(game_state)
 
         # Group worlds were the guessing agents hand is that same.
-        groups = {}
-        guessing_player_start_idx, guessing_player_end_idx = guessing_player_tile_idxs[0], guessing_player_tile_idxs[-1]
-        for world in all_possible_worlds:
-            guessing_players_hand = ''.join(map(str, world[guessing_player_start_idx:guessing_player_end_idx]))
-            if guessing_players_hand in groups:
-                groups[guessing_players_hand].append(world)
-            else:
-                groups[guessing_players_hand] = [world]
-        groups = list(groups.values())
-        print(len(groups))
+        groups = self.groups_for_player(game, guessing_player, game_state, all_possible_worlds)
+        # print(len(groups))
+        # print([''.join(map(str, w)) for w in groups[0]])
 
         # if the guessed tile is not in the group we remove all worlds in the group
         for group in groups:
@@ -270,3 +278,76 @@ class LogicalPlayer(Player):
         # print('\n'.join(map(lambda t: str(list(map(str, t))), options_per_tile)))
         # print(flat_tile_idx)
         return chosen_player, tile_idx, guess
+
+
+class LogicalPlayerMinimiseOthers(LogicalPlayer):
+
+    def all_groups_for_all_player(self, game, game_state, all_possible_worlds):
+        groups = []
+        for player in [p for p in game.players if p.name != self.name]:
+            groups.extend(self.groups_for_player(game, player, game_state, all_possible_worlds))
+        return groups
+
+    def make_guess(self, game, drawn_tile, is_optional=False, view=None):
+        game_state = self.get_local_game_state(game)
+        all_possible_worlds = possible_worlds(game_state)
+
+        if is_optional and len(all_possible_worlds) > 1:
+            return None, None, None
+
+        options_per_tile = self.kripke_options_per_tile(game_state, all_possible_worlds)
+        unique_options_per_tile = [np.unique(tile) for tile in options_per_tile]
+
+        groups_of_possible_worlds_for_different_players = self.all_groups_for_all_player(game, game_state,
+                                                                                        all_possible_worlds)
+
+        best_flat_tile_idx, best_option = None, None
+        highest_avg_group_size_after_guess = 0
+        # Try out all possible options for this agent
+        for flat_tile_idx, tile in enumerate(unique_options_per_tile):
+            for option in tile:
+                # Suppose the guess is right, we calculate the new group sizes for the other players
+                filtered_groups = [[1 for w in group if w[flat_tile_idx] == option] for group in groups_of_possible_worlds_for_different_players]
+                grp_size_after_guess = np.average(list(map(len, filtered_groups)))
+
+                # And take the guess that keeps the avg group size the highest
+                if grp_size_after_guess > highest_avg_group_size_after_guess:
+                    best_flat_tile_idx = flat_tile_idx
+                    best_option = option
+                    highest_avg_group_size_after_guess = grp_size_after_guess
+
+        player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(best_flat_tile_idx)
+        return game.players[player_idx], tile_idx, best_option
+
+class LogicalPlayerMaximizeSelf(LogicalPlayer):
+    def make_guess(self, game, drawn_tile, is_optional=False, view=None):
+        game_state = self.get_local_game_state(game)
+        all_possible_worlds = possible_worlds(game_state)
+
+        if is_optional and len(all_possible_worlds) > 1:
+            return None, None, None
+
+        options_per_tile = self.kripke_options_per_tile(game_state, all_possible_worlds)
+        unique_options_per_tile = [np.unique(tile) for tile in options_per_tile]
+
+        best_flat_tile_idx, best_option = None, None
+        minimum_amount_of_worlds = len(all_possible_worlds)
+        # Try out all possible options for this agent
+        for flat_tile_idx, tile in enumerate(unique_options_per_tile):
+            for option in tile:
+                # Suppose the guess is right, we calculate new amount of possible worlds
+                new_amount_of_possible_worlds = sum(1 for w in all_possible_worlds if w[flat_tile_idx] == option)
+
+                # Suppose the guess is wrong
+                new_amount_of_possible_worlds = (len(all_possible_worlds) - new_amount_of_possible_worlds + new_amount_of_possible_worlds) / 2
+
+                # And take the guess that lowers the possible amount of worlds the most
+                if new_amount_of_possible_worlds < minimum_amount_of_worlds:
+                    best_flat_tile_idx = flat_tile_idx
+                    best_option = option
+                    minimum_amount_of_worlds = new_amount_of_possible_worlds
+
+        print(f"Possible worlds go from {len(all_possible_worlds)} to {minimum_amount_of_worlds}")
+
+        player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(best_flat_tile_idx)
+        return game.players[player_idx], tile_idx, best_option

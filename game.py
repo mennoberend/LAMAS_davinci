@@ -11,6 +11,8 @@ class Game:
                  player_class=SimpleRandomPlayer, add_human_player=False):
         self.max_tile_number = max_tile_number
         self.unplayed_tiles = Tile.complete_set(max_number=max_tile_number)
+
+        # random.seed(9)
         random.shuffle(self.unplayed_tiles)
 
         self.players = []
@@ -33,6 +35,12 @@ class Game:
     def play_round(self, view=None):
         if not self.has_ended():
             self.players[self.current_player_idx].play_round(self, view=view)
+            self.next_player()
+
+    def next_player(self):
+        self.current_player_idx = (self.current_player_idx + 1) % len(self.players)
+        # If the players tiles are all visible skip that player
+        while all(t.visible for t in self.players[self.current_player_idx].tiles):
             self.current_player_idx = (self.current_player_idx + 1) % len(self.players)
 
     def take_tile_from_table(self):
