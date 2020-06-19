@@ -130,13 +130,12 @@ class Player:
         guessing_player_tile_idxs = game_state.flat_idxs_of_player(guessing_player_idx)
         guessed_tile_flat_idx = game_state.player_and_tile_idx_to_flat_idx(chosen_player_idx, tile_idx)
 
+        if correct:
+            return
 
         # Guessing player can never have the guessed_tile
         for flat_idx in guessing_player_tile_idxs:
             self.impossible_tiles[flat_idx].append(guessed_tile)
-
-        if correct:
-            return
 
         # The tile that was guessed cant be the guessed tile, since the guess was wrong
         self.impossible_tiles[guessed_tile_flat_idx].append(guessed_tile)
