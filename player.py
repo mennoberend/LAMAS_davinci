@@ -351,3 +351,43 @@ class LogicalPlayerMaximizeSelf(LogicalPlayer):
 
         player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(best_flat_tile_idx)
         return game.players[player_idx], tile_idx, best_option
+
+class BalancedLogicalPlayerMaximizeSelf(LogicalPlayer):
+    def make_guess(self, game, drawn_tile, is_optional=False, view=None):
+        game_state = self.get_local_game_state(game)
+        all_possible_worlds = possible_worlds(game_state)
+
+        if is_optional and len(all_possible_worlds) > 1:
+            return None, None, None
+
+        options_per_tile = self.kripke_options_per_tile(game_state, all_possible_worlds)
+        unique_options_per_tile = [np.unique(tile) for tile in options_per_tile]
+
+        best_flat_tile_idx, best_option = None, None
+        minimum_amount_of_worlds = len(all_possible_worlds)
+        # Try out all possible options for this agent
+        for flat_tile_idx, tile in enumerate(unique_options_per_tile):
+            for option in tile:
+                
+                # Possible worlds left if guess is right:
+                new_amount_of_possible_worlds_if_right = sum(1 for w in all_possible_worlds if w[flat_tile_idx] == option)
+
+                # Possible worlds left if guess is wrong:
+                new_amount_of_possible_worlds_if_wrong = len(all_possible_worlds) - new_amount_of_possible_worlds_if_right
+
+                # Weighted average:
+                new_amount_of_possible_worlds = (1/len(tile)) * new_amount_of_possible_worlds_if_right + (1-(1/len(tile))) * new_amount_of_possible_worlds_if_wrong
+                print(new_amount_of_possible_worlds)
+
+                # And take the guess that lowers the possible amount of worlds the most
+                if new_amount_of_possible_worlds < minimum_amount_of_worlds:
+                    best_flat_tile_idx = flat_tile_idx
+                    best_option = option
+                    minimum_amount_of_worlds = new_amount_of_possible_worlds
+
+        print(f"Possible worlds go from {len(all_possible_worlds)} to {minimum_amount_of_worlds}")
+        print(best_flat_tile_idx)
+
+        player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(best_flat_tile_idx)
+        return game.players[player_idx], tile_idx, best_option
+

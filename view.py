@@ -2,7 +2,7 @@ import sys
 import tkinter as tk
 
 from game import Game
-from player import HumanControlledPlayer, LogicalPlayer, LogicalPlayerMaximizeSelf
+from player import HumanControlledPlayer, LogicalPlayer, LogicalPlayerMaximizeSelf, BalancedLogicalPlayerMaximizeSelf
 
 
 class ExtendedCanvas(tk.Canvas):
@@ -156,7 +156,7 @@ if __name__ == "__main__":
         amount_of_starting_tiles=4,
         max_tile_number=7,
         add_human_player=False,
-        player_class=LogicalPlayerMaximizeSelf
+        player_class=BalancedLogicalPlayerMaximizeSelf
     )
 
     v = View(game)
