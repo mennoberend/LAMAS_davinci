@@ -317,9 +317,24 @@ class LogicalPlayerMinimiseOthers(LogicalPlayer):
         # Try out all possible options for this agent
         for flat_tile_idx, tile in enumerate(unique_options_per_tile):
             for option in tile:
+
+                # Possible worlds left if guess is right:
+                new_amount_of_possible_worlds_if_right = sum(1 for w in all_possible_worlds if w[flat_tile_idx] == option)
+
+                # Possible worlds left if guess is wrong:
+                new_amount_of_possible_worlds_if_wrong = len(all_possible_worlds) - new_amount_of_possible_worlds_if_right
+
+                # Chance the guess is right: 
+                chance_right = new_amount_of_possible_worlds_if_right/(new_amount_of_possible_worlds_if_right+new_amount_of_possible_worlds_if_wrong)
+
                 # Suppose the guess is right, we calculate the new group sizes for the other players
-                filtered_groups = [[1 for w in group if w[flat_tile_idx] == option] for group in groups_of_possible_worlds_for_different_players]
-                grp_size_after_guess = np.average(list(map(len, filtered_groups)))
+                filtered_groups_right = [[1 for w in group if w[flat_tile_idx] == option] for group in groups_of_possible_worlds_for_different_players]
+                grp_size_after_guess_right = np.average(list(map(len, filtered_groups_right)))
+
+                filtered_groups_wrong = [[1 for w in group if w[flat_tile_idx] != option] for group in groups_of_possible_worlds_for_different_players]
+                grp_size_after_guess_wrong = np.average(list(map(len, filtered_groups_wrong)))
+
+                grp_size_after_guess = chance_right * grp_size_after_guess_right + (1-chance_right) * grp_size_after_guess_wrong
 
                 # And take the guess that keeps the avg group size the highest
                 if grp_size_after_guess >= highest_avg_group_size_after_guess:
