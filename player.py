@@ -183,8 +183,6 @@ class Player:
                 self.impossible_worlds.extend(map(lambda w: ''.join(map(str, w)), group))
 
 
-
-
 class SimpleRandomPlayer(Player):
     def make_guess(self, game, drawn_tile, is_optional=False, view=None):
         if is_optional:
@@ -269,48 +267,17 @@ class LogicalPlayer(Player):
 
         return options_per_tile
 
-    def make_guess(self, game, drawn_tile, is_optional=False, view=None):
-        game_state = self.get_local_game_state(game)
-        all_possible_worlds = possible_worlds(game_state)
-
-        if is_optional and len(all_possible_worlds) > 1:
-            return None, None, None
-
-        options_per_tile = self.kripke_options_per_tile(game_state, all_possible_worlds)
-        # Get the tile with the most options
-        flat_tile_idx = np.argmax([len(np.unique(tile)) for tile in options_per_tile])
-
-        # Randomly choose a tile from from the option, options that are true in more world therefore have a higher
-        # chance of being picked
-        guess = random.choice(options_per_tile[flat_tile_idx])
-        player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(flat_tile_idx)
-        chosen_player = game.players[player_idx]
-
-        return chosen_player, tile_idx, guess
-
-
-class LogicalPlayerMinimiseOthers(LogicalPlayer):
-
     def all_groups_for_all_player(self, game, game_state, all_possible_worlds):
         groups = []
         for player in [p for p in game.players if p.name != self.name]:
             groups.extend(self.groups_for_player(game, player, game_state, all_possible_worlds))
         return groups
 
-    def make_guess(self, game, drawn_tile, is_optional=False, view=None):
-        game_state = self.get_local_game_state(game)
-        all_possible_worlds = possible_worlds(game_state)
-
-        if is_optional and len(all_possible_worlds) > 1:
-            return None, None, None
-
-        options_per_tile = self.kripke_options_per_tile(game_state, all_possible_worlds)
-        unique_options_per_tile = [np.unique(tile) for tile in options_per_tile]
-
+    def defensive_best_option(self, game, game_state, all_possible_worlds, unique_options_per_tile):
         groups_of_possible_worlds_for_different_players = self.all_groups_for_all_player(game, game_state,
-                                                                                        all_possible_worlds)
+                                                                                         all_possible_worlds)
 
-        best_flat_tile_idx, best_option = None, None
+        best_options_per_tile = [[] for _ in range(len(unique_options_per_tile))]
         highest_avg_group_size_after_guess = 0
         # Try out all possible options for this agent
         for flat_tile_idx, tile in enumerate(unique_options_per_tile):
@@ -322,96 +289,108 @@ class LogicalPlayerMinimiseOthers(LogicalPlayer):
                 # Possible worlds left if guess is wrong:
                 new_amount_of_possible_worlds_if_wrong = len(all_possible_worlds) - new_amount_of_possible_worlds_if_right
 
-                # Chance the guess is right: 
-                chance_right = new_amount_of_possible_worlds_if_right/(new_amount_of_possible_worlds_if_right+new_amount_of_possible_worlds_if_wrong)
+                # Chance the guess is right:
+                chance_right = new_amount_of_possible_worlds_if_right / (
+                            new_amount_of_possible_worlds_if_right + new_amount_of_possible_worlds_if_wrong)
 
                 # Suppose the guess is right, we calculate the new group sizes for the other players
-                filtered_groups_right = [[1 for w in group if w[flat_tile_idx] == option] for group in groups_of_possible_worlds_for_different_players]
+                filtered_groups_right = [[1 for w in group if w[flat_tile_idx] == option] for group in
+                                         groups_of_possible_worlds_for_different_players]
                 grp_size_after_guess_right = np.average(list(map(len, filtered_groups_right)))
 
-                filtered_groups_wrong = [[1 for w in group if w[flat_tile_idx] != option] for group in groups_of_possible_worlds_for_different_players]
+                filtered_groups_wrong = [[1 for w in group if w[flat_tile_idx] != option] for group in
+                                         groups_of_possible_worlds_for_different_players]
                 grp_size_after_guess_wrong = np.average(list(map(len, filtered_groups_wrong)))
 
-                grp_size_after_guess = chance_right * grp_size_after_guess_right + (1-chance_right) * grp_size_after_guess_wrong
+                grp_size_after_guess = chance_right * grp_size_after_guess_right + (
+                            1 - chance_right) * grp_size_after_guess_wrong
 
                 # And take the guess that keeps the avg group size the highest
-                if grp_size_after_guess >= highest_avg_group_size_after_guess:
-                    best_flat_tile_idx = flat_tile_idx
-                    best_option = option
+                if grp_size_after_guess == highest_avg_group_size_after_guess:
+                    best_options_per_tile[flat_tile_idx].append(option)
+                elif grp_size_after_guess > highest_avg_group_size_after_guess:
+                    best_options_per_tile = [[] for _ in range(len(unique_options_per_tile))]
+                    best_options_per_tile[flat_tile_idx].append(option)
                     highest_avg_group_size_after_guess = grp_size_after_guess
 
-        player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(best_flat_tile_idx)
-        return game.players[player_idx], tile_idx, best_option
+        return best_options_per_tile
 
-class LogicalPlayerMaximizeSelf(LogicalPlayer):
-    def make_guess(self, game, drawn_tile, is_optional=False, view=None):
-        game_state = self.get_local_game_state(game)
-        all_possible_worlds = possible_worlds(game_state)
+    def aggressive_best_options(self, all_possible_worlds, unique_options_per_tile):
+        best_options_per_tile = [[] for _ in range(len(unique_options_per_tile))]
 
-        if is_optional and len(all_possible_worlds) > 1:
-            return None, None, None
-
-        options_per_tile = self.kripke_options_per_tile(game_state, all_possible_worlds)
-        unique_options_per_tile = [np.unique(tile) for tile in options_per_tile]
-
-        best_flat_tile_idx, best_option = None, None
         minimum_amount_of_worlds = len(all_possible_worlds)
         # Try out all possible options for this agent
         for flat_tile_idx, tile in enumerate(unique_options_per_tile):
             for option in tile:
-                # Suppose the guess is right, we calculate new amount of possible worlds
-                new_amount_of_possible_worlds = sum(1 for w in all_possible_worlds if w[flat_tile_idx] == option)
 
-                # Suppose the guess is wrong
-                new_amount_of_possible_worlds = (len(all_possible_worlds) - new_amount_of_possible_worlds + new_amount_of_possible_worlds) / 2
-
-                # And take the guess that lowers the possible amount of worlds the most
-                if new_amount_of_possible_worlds <= minimum_amount_of_worlds:
-                    best_flat_tile_idx = flat_tile_idx
-                    best_option = option
-                    minimum_amount_of_worlds = new_amount_of_possible_worlds
-
-        # print(f"Possible worlds go from {len(all_possible_worlds)} to {minimum_amount_of_worlds}")
-
-        player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(best_flat_tile_idx)
-        return game.players[player_idx], tile_idx, best_option
-
-class BalancedLogicalPlayerMaximizeSelf(LogicalPlayer):
-    def make_guess(self, game, drawn_tile, is_optional=False, view=None):
-        game_state = self.get_local_game_state(game)
-        all_possible_worlds = possible_worlds(game_state)
-
-        if is_optional and len(all_possible_worlds) > 1:
-            return None, None, None
-
-        options_per_tile = self.kripke_options_per_tile(game_state, all_possible_worlds)
-        unique_options_per_tile = [np.unique(tile) for tile in options_per_tile]
-
-        best_flat_tile_idx, best_option = None, None
-        minimum_amount_of_worlds = len(all_possible_worlds)
-        # Try out all possible options for this agent
-        for flat_tile_idx, tile in enumerate(unique_options_per_tile):
-            for option in tile:
-                
                 # Possible worlds left if guess is right:
                 new_amount_of_possible_worlds_if_right = sum(1 for w in all_possible_worlds if w[flat_tile_idx] == option)
 
                 # Possible worlds left if guess is wrong:
                 new_amount_of_possible_worlds_if_wrong = len(all_possible_worlds) - new_amount_of_possible_worlds_if_right
 
-                # Chance the guess is right: 
-                chance_right = new_amount_of_possible_worlds_if_right/(new_amount_of_possible_worlds_if_right+new_amount_of_possible_worlds_if_wrong)
+                # Chance the guess is right:
+                chance_right = new_amount_of_possible_worlds_if_right / (
+                            new_amount_of_possible_worlds_if_right + new_amount_of_possible_worlds_if_wrong)
 
                 # Weighted average:
-                new_amount_of_possible_worlds = chance_right * new_amount_of_possible_worlds_if_right + (1-chance_right) * new_amount_of_possible_worlds_if_wrong
+                new_amount_of_possible_worlds = chance_right * new_amount_of_possible_worlds_if_right + (
+                            1 - chance_right) * new_amount_of_possible_worlds_if_wrong
 
                 # And take the guess that lowers the possible amount of worlds the most
-                if new_amount_of_possible_worlds <= minimum_amount_of_worlds:
-                    best_flat_tile_idx = flat_tile_idx
-                    best_option = option
+                if new_amount_of_possible_worlds == minimum_amount_of_worlds:
+                    best_options_per_tile[flat_tile_idx].append(option)
+                elif new_amount_of_possible_worlds < minimum_amount_of_worlds:
+                    best_options_per_tile = [[] for _ in range(len(unique_options_per_tile))]
+                    best_options_per_tile[flat_tile_idx].append(option)
                     minimum_amount_of_worlds = new_amount_of_possible_worlds
 
-        # print(f"Possible worlds go from {len(all_possible_worlds)} to {minimum_amount_of_worlds}")
+        return best_options_per_tile
+
+    def choose_first_from_option_array(self, option_array):
+        for flat_idx, options in enumerate(option_array):
+            if options:
+                return flat_idx, options[0]
+        return None, None
+
+
+class DefensiveLogicalPlayer(LogicalPlayer):
+
+    def make_guess(self, game, drawn_tile, is_optional=False, view=None):
+        game_state = self.get_local_game_state(game)
+        all_possible_worlds = possible_worlds(game_state)
+
+        if is_optional and len(all_possible_worlds) > 1:
+            return None, None, None
+
+        options_per_tile = self.kripke_options_per_tile(game_state, all_possible_worlds)
+        unique_options_per_tile = [np.unique(tile) for tile in options_per_tile]
+
+        best_defensive_options = self.defensive_best_option(game, game_state, all_possible_worlds,
+                                                            unique_options_per_tile)
+        best_options = self.aggressive_best_options(all_possible_worlds, best_defensive_options)
+
+        best_flat_tile_idx, best_option = self.choose_first_from_option_array(best_options)
+
+        player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(best_flat_tile_idx)
+        return game.players[player_idx], tile_idx, best_option
+
+
+class AggressiveLogicalPlayer(LogicalPlayer):
+    def make_guess(self, game, drawn_tile, is_optional=False, view=None):
+        game_state = self.get_local_game_state(game)
+        all_possible_worlds = possible_worlds(game_state)
+
+        if is_optional and len(all_possible_worlds) > 1:
+            return None, None, None
+
+        options_per_tile = self.kripke_options_per_tile(game_state, all_possible_worlds)
+        unique_options_per_tile = [np.unique(tile) for tile in options_per_tile]
+
+        best_aggressive_options = self.aggressive_best_options(all_possible_worlds, unique_options_per_tile)
+        best_options = self.defensive_best_option(game, game_state, all_possible_worlds, best_aggressive_options)
+
+        best_flat_tile_idx, best_option = self.choose_first_from_option_array(best_options)
 
         player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(best_flat_tile_idx)
         return game.players[player_idx], tile_idx, best_option
