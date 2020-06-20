@@ -114,8 +114,19 @@ class Player:
         game_state = self.get_local_game_state(game)
         # Calculate possible worlds
         all_possible_worlds = possible_worlds(game_state)
+
+        # Determine extra relations
+        color_group_pairs = []
+        for color, player in zip(['red', 'green', 'blue', 'purple'], [p for p in game.players]):
+            if player.name == self.name:
+                continue
+            color_group_pairs.append((color, self.groups_for_player(game, game.players[player.name], game_state,
+                                                                    all_possible_worlds)))
+
         # Plot the kripke model
-        plot_local_kripke_model(game_state, all_possible_worlds, ['red', 'green', 'blue', 'purple'][self.name])
+        real_world = [str(t) for player in game.players for t in player.tiles]
+        plot_local_kripke_model(game_state, all_possible_worlds, real_world=real_world, player_idx=self.name,
+                                color_group_pairs=color_group_pairs)
 
     def groups_for_player(self, game, player, game_state, all_possible_worlds):
         player_idx = game.players.index(player)

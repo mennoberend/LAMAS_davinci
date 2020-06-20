@@ -22,19 +22,20 @@ def build_graph(possible_worlds, G=None, color='red'):
     return G
 
 
-def combinations_to_str(game_state, all_combinations):
+def world_to_str(w, game_state):
     player_names = [f"p{i}" for i in range(len(game_state.player_tiles))]
-    ret = []
-    for c in all_combinations:
-        start_idx = 0
-        world_string = '"'
-        for players_amount_of_tiles, name in zip(map(len, game_state.player_tiles), player_names):
-            world_string += name + ': {'
-            world_string += ' '.join(str(t) for t in c[start_idx:start_idx + players_amount_of_tiles])
-            world_string += '}\l\n'
-            start_idx += players_amount_of_tiles
-        ret.append(world_string + '"')
-    return ret
+    start_idx = 0
+    world_string = '"'
+    for players_amount_of_tiles, name in zip(map(len, game_state.player_tiles), player_names):
+        world_string += name + ': {'
+        world_string += ' '.join(str(t) for t in w[start_idx:start_idx + players_amount_of_tiles])
+        world_string += '}\l\n'
+        start_idx += players_amount_of_tiles
+    return world_string + '"'
+
+
+def combinations_to_str(game_state, all_combinations):
+    return [world_to_str(w, game_state) for w in all_combinations]
 
 
 def draw_graph(G, layout='circo'):
@@ -47,16 +48,39 @@ def draw_graph(G, layout='circo'):
     draw(G)
 
 
-def plot_local_kripke_model(game_state, all_combinations, color='red'):
+def plot_local_kripke_model(game_state, all_combinations, player_idx, real_world=None, colors=None,
+                            color_group_pairs=None):
+    colors = colors or ['red', 'green', 'blue', 'purple']
     s = combinations_to_str(game_state, all_combinations)
-    G = build_graph(s, color=color)
+    G = build_graph(s, color=colors[player_idx])
+    if real_world:
+        real_world_string = world_to_str(real_world, game_state)
+        G.add_node(real_world_string, shape='square', penwidth=2, fontname="helvetica italic")
+
+    # Add relations for the other players
+    if color_group_pairs:
+        for color, groups in color_group_pairs:
+            for group in groups:
+                group = combinations_to_str(game_state, group)
+                for w in group:
+                    other_w = [other for other in group if w != other]
+                    for other in other_w:
+                        if G.has_edge(other, w):
+                            existing_edges = G.get_edge_data(other, w)
+                            if any([edge_data['color'] == color for edge_data in existing_edges.values()]):
+                                continue
+                        G.add_edge(w, other, color=color, dir='both')
+
     draw_graph(G)
 
 
-def plot_global_kripke_model(state_combination_pairs):
+def plot_global_kripke_model(state_combination_pairs, real_world=None):
     colors = ['red', 'green', 'blue', 'purple']
     G = nx.MultiDiGraph()
     for (game_state, all_combinations), color in zip(state_combination_pairs, colors):
         s = combinations_to_str(game_state, all_combinations)
         G = build_graph(s, G, color=color)
+    if real_world:
+        real_world_string = world_to_str(real_world, state_combination_pairs[0][0])
+        G.add_node(real_world_string, shape='square', penwidth=2, fontname="helvetica italic")
     draw_graph(G, layout='sfdp')  # dot or sfdp are the best options
