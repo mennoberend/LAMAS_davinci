@@ -28,23 +28,18 @@ def play_game(t):
 
 
 # Parameter settings
-n = 20
+n = 1000
 amount_of_players = 4
 amount_of_starting_tiles = 4
 max_tile_number = 10
-# players_classes = [BalancedLogicalPlayerMaximizeSelf, BalancedLogicalPlayerMaximizeSelf, LogicalPlayerMinimiseOthers,
-#                    LogicalPlayerMinimiseOthers]
-players_classes = [BalancedLogicalPlayerMaximizeSelf, BalancedLogicalPlayerMaximizeSelf, LogicalPlayer,
-                   LogicalPlayer]
-
+players_classes = [BalancedLogicalPlayerMaximizeSelf, BalancedLogicalPlayerMaximizeSelf, LogicalPlayerMinimiseOthers,
+                   LogicalPlayerMinimiseOthers]
 
 # Multiprocessing part
-pool = multiprocessing.Pool(processes=None)
+pool = multiprocessing.Pool(processes=6)
 winners = pool.map(play_game, ((i, amount_of_players, amount_of_starting_tiles, max_tile_number, players_classes) for i in range(n)))
 pool.close()
 pool.join()
-
-
 
 # Extract and print results
 results_dict = {}
@@ -54,6 +49,8 @@ for winner in winners:
     else:
         results_dict[winner] = 1
 
+print('\nPARAMETERS:')
 print(f"N={n}\nAmount of players={amount_of_players}\nAmount of starting tiles={amount_of_starting_tiles}")
 print(f"max_tile_number={max_tile_number} ({max_tile_number * 2} tiles)\nPlayer classes={players_classes}")
+print('\nRESULT:')
 print(results_dict)

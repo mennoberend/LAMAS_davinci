@@ -156,7 +156,7 @@ if __name__ == "__main__":
         amount_of_starting_tiles=4,
         max_tile_number=7,
         add_human_player=False,
-        player_class=LogicalPlayerMinimiseOthers
+        player_classes=BalancedLogicalPlayerMaximizeSelf
     )
 
     v = View(game)
