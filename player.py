@@ -311,7 +311,7 @@ class LogicalPlayerMinimiseOthers(LogicalPlayer):
                 grp_size_after_guess = np.average(list(map(len, filtered_groups)))
 
                 # And take the guess that keeps the avg group size the highest
-                if grp_size_after_guess > highest_avg_group_size_after_guess:
+                if grp_size_after_guess >= highest_avg_group_size_after_guess:
                     best_flat_tile_idx = flat_tile_idx
                     best_option = option
                     highest_avg_group_size_after_guess = grp_size_after_guess
@@ -342,7 +342,7 @@ class LogicalPlayerMaximizeSelf(LogicalPlayer):
                 new_amount_of_possible_worlds = (len(all_possible_worlds) - new_amount_of_possible_worlds + new_amount_of_possible_worlds) / 2
 
                 # And take the guess that lowers the possible amount of worlds the most
-                if new_amount_of_possible_worlds < minimum_amount_of_worlds:
+                if new_amount_of_possible_worlds <= minimum_amount_of_worlds:
                     best_flat_tile_idx = flat_tile_idx
                     best_option = option
                     minimum_amount_of_worlds = new_amount_of_possible_worlds
@@ -377,10 +377,11 @@ class BalancedLogicalPlayerMaximizeSelf(LogicalPlayer):
 
                 # Weighted average:
                 new_amount_of_possible_worlds = (1/len(tile)) * new_amount_of_possible_worlds_if_right + (1-(1/len(tile))) * new_amount_of_possible_worlds_if_wrong
-                print(new_amount_of_possible_worlds)
+                # print(minimum_amount_of_worlds)
+                # print(new_amount_of_possible_worlds)
 
                 # And take the guess that lowers the possible amount of worlds the most
-                if new_amount_of_possible_worlds < minimum_amount_of_worlds:
+                if new_amount_of_possible_worlds <= minimum_amount_of_worlds:
                     best_flat_tile_idx = flat_tile_idx
                     best_option = option
                     minimum_amount_of_worlds = new_amount_of_possible_worlds
