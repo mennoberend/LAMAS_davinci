@@ -55,7 +55,8 @@ class Game:
             all_possible_worlds = possible_worlds(game_state)
             state_combinations_pairs.append((game_state, all_possible_worlds))
         # Plot the kripke model
-        plot_global_kripke_model(state_combinations_pairs)
+        real_world = [str(t) for player in self.players for t in player.tiles]
+        plot_global_kripke_model(state_combinations_pairs, real_world=real_world)
 
     def winner(self):
         for player in self.players:
