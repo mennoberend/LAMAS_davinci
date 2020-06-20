@@ -375,10 +375,11 @@ class BalancedLogicalPlayerMaximizeSelf(LogicalPlayer):
                 # Possible worlds left if guess is wrong:
                 new_amount_of_possible_worlds_if_wrong = len(all_possible_worlds) - new_amount_of_possible_worlds_if_right
 
+                # Chance the guess is right: 
+                chance_right = new_amount_of_possible_worlds_if_right/(new_amount_of_possible_worlds_if_right+new_amount_of_possible_worlds_if_wrong)
+
                 # Weighted average:
-                new_amount_of_possible_worlds = (1/len(tile)) * new_amount_of_possible_worlds_if_right + (1-(1/len(tile))) * new_amount_of_possible_worlds_if_wrong
-                # print(minimum_amount_of_worlds)
-                # print(new_amount_of_possible_worlds)
+                new_amount_of_possible_worlds = chance_right * new_amount_of_possible_worlds_if_right + (1-chance_right) * new_amount_of_possible_worlds_if_wrong
 
                 # And take the guess that lowers the possible amount of worlds the most
                 if new_amount_of_possible_worlds <= minimum_amount_of_worlds:
