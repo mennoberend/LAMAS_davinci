@@ -37,8 +37,9 @@ class Player:
         while True:
             if game.has_ended():
                 return
-            view.canvas.draw_game(game)  # Doesn't work
-            time.sleep(.5)
+            if view:
+                view.canvas.draw_game(game)
+                time.sleep(.5)
             if not self.guess_wrapper(game, drawn_tile, is_optional=True, view=view):
                 return
 
@@ -53,9 +54,10 @@ class Player:
             return False
 
         # Print the guess
-        view.canvas.text.append(
-            f"Player {self.name} guesses that tile {tile_idx + 1} of Player {chosen_player.name} is {guessed_tile}"
-        )
+        if view:
+            view.canvas.text.append(
+                f"Player {self.name} guesses that tile {tile_idx + 1} of Player {chosen_player.name} is {guessed_tile}"
+            )
 
         # Check if the guess was correct, if the drawn tile is added visible to the other players
         correct = chosen_player.handle_guess(tile_idx, guessed_tile)
@@ -173,8 +175,6 @@ class Player:
 
         # Group worlds were the guessing agents hand is that same.
         groups = self.groups_for_player(game, guessing_player, game_state, all_possible_worlds)
-        # print(len(groups))
-        # print([''.join(map(str, w)) for w in groups[0]])
 
         # if the guessed tile is not in the group we remove all worlds in the group
         for group in groups:
@@ -286,8 +286,6 @@ class LogicalPlayer(Player):
         player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(flat_tile_idx)
         chosen_player = game.players[player_idx]
 
-        # print('\n'.join(map(lambda t: str(list(map(str, t))), options_per_tile)))
-        # print(flat_tile_idx)
         return chosen_player, tile_idx, guess
 
 
@@ -358,7 +356,7 @@ class LogicalPlayerMaximizeSelf(LogicalPlayer):
                     best_option = option
                     minimum_amount_of_worlds = new_amount_of_possible_worlds
 
-        print(f"Possible worlds go from {len(all_possible_worlds)} to {minimum_amount_of_worlds}")
+        # print(f"Possible worlds go from {len(all_possible_worlds)} to {minimum_amount_of_worlds}")
 
         player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(best_flat_tile_idx)
         return game.players[player_idx], tile_idx, best_option
@@ -398,8 +396,7 @@ class BalancedLogicalPlayerMaximizeSelf(LogicalPlayer):
                     best_option = option
                     minimum_amount_of_worlds = new_amount_of_possible_worlds
 
-        print(f"Possible worlds go from {len(all_possible_worlds)} to {minimum_amount_of_worlds}")
-        print(best_flat_tile_idx)
+        # print(f"Possible worlds go from {len(all_possible_worlds)} to {minimum_amount_of_worlds}")
 
         player_idx, tile_idx = game_state.flat_idx_to_player_and_tile_idx(best_flat_tile_idx)
         return game.players[player_idx], tile_idx, best_option

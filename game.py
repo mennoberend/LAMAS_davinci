@@ -1,14 +1,17 @@
 import random
 
 from kripke_plotter import plot_global_kripke_model
-from player import SimpleRandomPlayer, HumanControlledPlayer
+from player import SimpleRandomPlayer, HumanControlledPlayer, Player
 from possible_worlds import possible_worlds
 from tile import Tile
 
 
 class Game:
     def __init__(self, amount_of_players=3, amount_of_starting_tiles=4, max_tile_number=7,
-                 player_class=SimpleRandomPlayer, add_human_player=False):
+                 player_classes=SimpleRandomPlayer, add_human_player=False):
+        if not isinstance(player_classes, list):
+            player_classes = [player_classes] * amount_of_players
+
         self.max_tile_number = max_tile_number
         self.unplayed_tiles = Tile.complete_set(max_number=max_tile_number)
 
@@ -16,7 +19,7 @@ class Game:
         random.shuffle(self.unplayed_tiles)
 
         self.players = []
-        for name in range(amount_of_players):
+        for name, player_class in zip(list(range(amount_of_players)), player_classes):
             p = player_class(self.unplayed_tiles[:amount_of_starting_tiles], name)
             self.unplayed_tiles = self.unplayed_tiles[amount_of_starting_tiles:]
             self.players.append(p)

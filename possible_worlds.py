@@ -93,9 +93,6 @@ def perms(unused_tiles, game_state, idx=0, previous_tile=None):
 
 
 def possible_worlds(game_state, verbose=False):
-    print([list(map(str, a)) for a in game_state.impossible_tiles])
-    print(game_state.impossible_worlds)
-    # print(f"Our own blocks: {' '.join(map(str, own_tiles))}")
     if verbose:
         print(f"\nGame state:\n{str(game_state)}")
     all_combinations = perms(game_state.unknown_tiles, game_state)
