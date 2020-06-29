@@ -17,6 +17,7 @@ def exponential_random_choice(a):
 
 
 class Player:
+    strategy_name = ''
     def __init__(self, starting_tiles, name):
         self.tiles = sorted(starting_tiles)
         self.name = name
@@ -355,6 +356,7 @@ class LogicalPlayer(Player):
 
 
 class DefensiveLogicalPlayer(LogicalPlayer):
+    strategy_name = 'defensive'
 
     def make_guess(self, game, drawn_tile, is_optional=False, view=None):
         game_state = self.get_local_game_state(game)
@@ -377,6 +379,8 @@ class DefensiveLogicalPlayer(LogicalPlayer):
 
 
 class AggressiveLogicalPlayer(LogicalPlayer):
+    strategy_name = 'aggressive'
+
     def make_guess(self, game, drawn_tile, is_optional=False, view=None):
         game_state = self.get_local_game_state(game)
         all_possible_worlds = possible_worlds(game_state)

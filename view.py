@@ -43,7 +43,7 @@ class ExtendedCanvas(tk.Canvas):
 
     def draw_player(self, player, location, game, color):
         self.draw_rectangle(location[0], location[1], self.player_width, self.player_height, fill="gray")
-        human_player_text = " (You)" if isinstance(player, HumanControlledPlayer) else ""
+        human_player_text = " (You)" if isinstance(player, HumanControlledPlayer) else f" ({player.strategy_name})"
         self.create_text(location[0] + self.player_width // 2, location[1] + int(self.player_height * 1.5),
                          fill=color, font="Times 20 bold", text=f"Player {player.name}{human_player_text}")
 
@@ -150,13 +150,3 @@ class View:
         sys.exit()
 
 
-if __name__ == "__main__":
-    game = Game(
-        amount_of_players=2,
-        amount_of_starting_tiles=4,
-        max_tile_number=8,
-        add_human_player=False,
-        player_classes=[DefensiveLogicalPlayer, AggressiveLogicalPlayer]
-    )
-
-    v = View(game)
