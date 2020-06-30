@@ -138,7 +138,7 @@ class Player:
 
         groups = {}
         for world in all_possible_worlds:
-            guessing_players_hand = ''.join(map(str, world[player_start_idx:player_end_idx]))
+            guessing_players_hand = ''.join(map(str, world[player_start_idx:player_end_idx + 1]))
             if guessing_players_hand in groups:
                 groups[guessing_players_hand].append(world)
             else:
@@ -158,7 +158,6 @@ class Player:
         chosen_player_idx = game.players.index(chosen_player)
         guessing_player_tile_idxs = game_state.flat_idxs_of_player(guessing_player_idx)
         guessed_tile_flat_idx = game_state.player_and_tile_idx_to_flat_idx(chosen_player_idx, tile_idx)
-
         if correct:
             return
 
@@ -232,7 +231,7 @@ class HumanControlledPlayer(Player):
         tile_idx = int(self.save_prompt(prompt, [str(idx + 1) for idx in range(len(chosen_player.tiles))], view.master)) - 1
 
         # Choose the tile
-        prompt = "\nWhat tile do you think the player has. (Enter as b1 or w6)"
+        prompt = "\nWhat tile do you think the player has. (Enter as b1 or w2)"
         guess = Tile.from_string(self.save_prompt(prompt, [str(t) for t in Tile.complete_set(game.max_tile_number)], view.master))
 
         return chosen_player, tile_idx, guess

@@ -33,7 +33,7 @@ def play_game(t):
 n = 1000
 amount_of_players = 4
 amount_of_starting_tiles = 4
-max_tile_number = 9
+max_tile_number = 8
 
 players_classes = [AggressiveLogicalPlayer, AggressiveLogicalPlayer, DefensiveLogicalPlayer, DefensiveLogicalPlayer]
 # players_classes = [AggressiveLogicalPlayer, DefensiveLogicalPlayer]

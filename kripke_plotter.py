@@ -53,12 +53,12 @@ def plot_local_kripke_model(game_state, all_combinations, player_idx, real_world
     colors = colors or ['red', 'green', 'blue', 'purple']
     s = combinations_to_str(game_state, all_combinations)
     G = build_graph(s, color=colors[player_idx])
-    if real_world:
+    if real_world and len(s) <= 25:
         real_world_string = world_to_str(real_world, game_state)
         G.add_node(real_world_string, shape='square', penwidth=2, fontname="helvetica italic")
 
     # Add relations for the other players
-    if color_group_pairs:
+    if color_group_pairs and len(s) <= 25: # when there is more than 25 worlds nothing gets plotted
         for color, groups in color_group_pairs:
             for group in groups:
                 group = combinations_to_str(game_state, group)
