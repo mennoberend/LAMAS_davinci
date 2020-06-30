@@ -1,7 +1,5 @@
-import random
 import time
 from math import exp
-from tkinter import simpledialog
 
 import numpy as np
 
@@ -238,6 +236,7 @@ class HumanControlledPlayer(Player):
 
     @staticmethod
     def save_prompt(prompt, allowed_responses=None, application_window=None):
+        from tkinter import simpledialog
         if application_window is None:
             ret = input(prompt)
         else:
