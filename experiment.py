@@ -1,9 +1,11 @@
+import argparse
 import multiprocessing
+
 import random
 from copy import deepcopy
 
 from game import Game
-from player import AggressiveLogicalPlayer, DefensiveLogicalPlayer, LogicalPlayer
+from player import AggressiveLogicalPlayer, DefensiveLogicalPlayer
 
 
 def play_game(t):
@@ -24,22 +26,32 @@ def play_game(t):
 
     while not game.has_ended():
         game.play_round()
-
-    print(f"Done with {i}")
+    if opt.verbose:
+        print(f"Done with {i}")
     return type(game.winner()).__name__
 
-
 # Parameter settings
+parser = argparse.ArgumentParser()
+parser.add_argument('--verbose', action='store_true', default=False,
+                    help='Whether you want to  print every succeeded game')
+parser.add_argument('--amount_of_players', type=int, default=4,
+                    help='How many players(the user excluded) are in the game [Default: 4](Maximum 4)')
+parser.add_argument('--amount_of_starting_tiles', type=int,
+                    default=4, help='The amount of tiles every player starts with [Default: 4]')
+parser.add_argument('--max_tile_number', type=int, default=8,
+                    help='What is the highest number on a tile, if the total amount of tiles will be double this number')
+opt = parser.parse_args()
+
 n = 1000
-amount_of_players = 4
-amount_of_starting_tiles = 4
-max_tile_number = 8
+amount_of_players = opt.amount_of_players
+amount_of_starting_tiles = opt.amount_of_starting_tiles
+max_tile_number = opt.max_tile_number
 
 players_classes = [AggressiveLogicalPlayer, AggressiveLogicalPlayer, DefensiveLogicalPlayer, DefensiveLogicalPlayer]
-# players_classes = [AggressiveLogicalPlayer, DefensiveLogicalPlayer]
+
 
 # Multiprocessing part
-pool = multiprocessing.Pool(processes=6)
+pool = multiprocessing.Pool(processes=None)
 winners = pool.map(play_game, ((i, amount_of_players, amount_of_starting_tiles, max_tile_number, players_classes) for i in range(n)))
 pool.close()
 pool.join()

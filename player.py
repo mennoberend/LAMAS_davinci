@@ -296,11 +296,13 @@ class LogicalPlayer(Player):
                 # Suppose the guess is right, we calculate the new group sizes for the other players
                 filtered_groups_right = [[1 for w in group if w[flat_tile_idx] == option] for group in
                                          groups_of_possible_worlds_for_different_players]
+                filtered_groups_right = [group for group in filtered_groups_right if len(group) > 0] if filtered_groups_right else 0
                 grp_size_after_guess_right = np.average(list(map(len, filtered_groups_right)))
 
                 filtered_groups_wrong = [[1 for w in group if w[flat_tile_idx] != option] for group in
                                          groups_of_possible_worlds_for_different_players]
-                grp_size_after_guess_wrong = np.average(list(map(len, filtered_groups_wrong)))
+                filtered_groups_wrong = [group for group in filtered_groups_wrong if len(group) > 0]
+                grp_size_after_guess_wrong = np.average(list(map(len, filtered_groups_wrong))) if filtered_groups_wrong else 0
 
                 grp_size_after_guess = chance_right * grp_size_after_guess_right + (
                             1 - chance_right) * grp_size_after_guess_wrong
