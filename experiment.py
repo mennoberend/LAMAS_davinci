@@ -40,9 +40,11 @@ parser.add_argument('--amount_of_starting_tiles', type=int,
                     default=4, help='The amount of tiles every player starts with [Default: 4]')
 parser.add_argument('--max_tile_number', type=int, default=8,
                     help='What is the highest number on a tile, if the total amount of tiles will be double this number')
+parser.add_argument('--n', type=int, default=1000,
+                    help='Amount of simulations')
 opt = parser.parse_args()
 
-n = 1000
+n = opt.n
 amount_of_players = opt.amount_of_players
 amount_of_starting_tiles = opt.amount_of_starting_tiles
 max_tile_number = opt.max_tile_number
@@ -69,3 +71,4 @@ print(f"N={n}\nAmount of players={amount_of_players}\nAmount of starting tiles={
 print(f"max_tile_number={max_tile_number} ({max_tile_number * 2} tiles)\nPlayer classes={players_classes}")
 print('\nRESULT:')
 print(results_dict)
+print()
