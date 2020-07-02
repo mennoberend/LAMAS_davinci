@@ -52,11 +52,23 @@ class Game:
 
     def plot_complete_kripke_model(self):
         state_combinations_pairs = []
+
         for player in self.players:
             game_state = player.get_local_game_state(self)
             # Calculate possible worlds
             all_possible_worlds = possible_worlds(game_state)
-            state_combinations_pairs.append((game_state, all_possible_worlds))
+
+            color_group_pairs = []
+            # Get hypothetical relations
+            for color, other_player in zip(['red', 'green', 'blue', 'purple'], [p for p in self.players]):
+                if other_player.name == player.name:
+                    continue
+                color_group_pairs.append((color, player.groups_for_player(self,
+                                                                          self.players[other_player.name], game_state,
+                                                                          all_possible_worlds)))
+            state_combinations_pairs.append((game_state, all_possible_worlds, color_group_pairs))
+
+
         # Plot the kripke model
         real_world = [str(t) for player in self.players for t in player.tiles]
         plot_global_kripke_model(state_combinations_pairs, real_world=real_world)
