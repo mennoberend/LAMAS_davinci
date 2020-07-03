@@ -69,6 +69,8 @@ MathJax.Hub.Config({
 
 
 
+
+
       <h2 id="Introduction">Introduction</h2>
 <p>In this project, we will analyse the game ‘Da Vinci Code’. Da Vinci Code is a game in which players each get a secret code and have to guess the code of the other players. However, by guessing something of another player, you can also give information about your own code. Therefore, the players have to think carefully not only about what they know about the other players’ codes, but also about what they know about what the other players know about their codes, and about what the other players know about what they know about the other players’ codes, and that is where epistemic logic comes in.</p>
 <h2 id="game-explanation">Game explanation</h2>
@@ -141,8 +143,70 @@ pre(<code>wg(xi_p)</code>)=<span class="math inline">¬<em>x</em><em>i</em><sub>
   <div class="w3-row w3-padding-64">
     <div class="w3-twothird w3-container">
       <h1 class="w3-text-teal" id="Simulation">Simulation</h1>
+
+
+
+
+
       <p>To supplement our research and visualise the theory of mind of different agents, we built a simulation of a simple scenario where agents play against each other and model their knowledge states. This simulation features both a Graphical User Interface (GUI) and a command line interface. In the GUI it is possible to let several logical agents play against each other and observe the moves they make based on their respective strategies. We also included a mode where you can join the logical players and try out their reactions to guesses you make. The command line interface can be used to simulate series of games for comparing the strategies with different game settings. Furthermore both the GUI and commandline versions of the simulation have the possibility of setting the total amount of players, their strategies (for the non-human players), the total amount of blocks in the game and with how many blocks every player will start. When using the GUI to view a game it is possible to get insight into the logical beliefs of every agent, in the form of a sort of local Kripke model. This model shows the worlds one agent currently considers possible and relations between them, closely resembling the graph in <a href="#fig:model4" data-reference-type="ref" data-reference="fig:model4">figure 4</a>.</p>
-<p>We also added a view of the complete Kripke model, showing all worlds that at least some agents regard as possible and the relations between these worlds. In all Kripke models in the simulation, the reflexive relations are not drawn, but are there for every agent for every world.</p>
+<p>We also added a view of the complete Kripke model, showing all worlds that at least some agents regard as possible and the relations between these worlds. In all Kripke models in the simulation, the reflexive relations are not drawn, but are there for every agent for every world. In the images below we show some examples of our GUI and the drawing of local and global Kripke models. You can click the images to enlarge them. </p>
+
+<style>
+div.gallery {
+  margin: 5px;
+  border: 1px solid #ccc;
+  float: left;
+  width: 180px;
+}
+
+div.gallery:hover {
+  border: 1px solid #777;
+}
+
+div.gallery img {
+  width: 100%;
+  height: auto;
+}
+
+div.desc {
+  padding: 15px;
+  text-align: center;
+}
+</style>
+
+<body>
+
+<div class="gallery">
+  <a target="_blank" href="images/sim1.jpeg">
+    <img src="images/sim1.jpeg" alt="Example 1" height="600">
+  </a>
+  
+</div>
+
+<div class="gallery">
+  <a target="_blank" href="images/sim2.jpeg">
+    <img src="images/sim2.jpeg" alt="Example 2" height="600">
+  </a>
+  <div class="desc">Example of local Kripke models</div>
+</div>
+
+<div class="gallery">
+  <a target="_blank" href="images/sim3.jpeg">
+    <img src="images/sim3.jpeg" alt="Example 3" height="600">
+  </a>
+  <div class="desc">Example of global Kripke models</div>
+</div>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
 <h2 id="kripke-models-in-the-simulation">Kripke models in the simulation</h2>
 <p>In the beginning of the game, the local Kripke model of an agent consists of the worlds that he considers possible, i.e. the worlds in which he himself has the blocks he has in reality, and the other players have blocks that agree with the colours of the blocks they have in reality, as explained in section <a href="#initial model" data-reference-type="ref" data-reference="initial model">[initial model]</a>. The global Kripke model at the start of the game consists of the combination of the local Kripke models of all agents.</p>
 <p>When some player takes the action <span class="math inline"><code>rg</code>(<em>x</em><em>i</em><sub><em>p</em></sub>)</span>, i.e. guessing correctly that the <span class="math inline"><em>i</em></span>th block of player <span class="math inline"><em>x</em></span> is number <span class="math inline"><em>p</em></span>, then that block is revealed, so all the worlds where that block has a different value are removed (for all players, because the action is public). When player <span class="math inline"><em>a</em></span> takes the action <span class="math inline"><code>wg</code>(<em>x</em><em>i</em><sub><em>p</em></sub>)</span>, i.e. guessing incorrectly that the <span class="math inline"><em>i</em></span>th block of player <span class="math inline"><em>x</em></span> is number <span class="math inline"><em>p</em></span>, everyone knows that that block does not have number <span class="math inline"><em>p</em></span> so all the worlds where the value of the block <em>is</em> <span class="math inline"><em>p</em></span> are removed. Furthermore, all players know that player <span class="math inline"><em>a</em></span> did not know that that block was not <span class="math inline"><em>p</em></span>, so for every player, all relations to worlds in which that player knows that <span class="math inline"><em>K</em><sub><em>a</em></sub><em>x</em><em>i</em><sub><em>p</em></sub></span> are removed. This may be different per player, e.g. player <span class="math inline"><em>c</em></span> might know that player <span class="math inline"><em>a</em></span> knows something in a certain world, while player <span class="math inline"><em>b</em></span> does not know that player <span class="math inline"><em>a</em></span> knows this.<br />
