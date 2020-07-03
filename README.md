@@ -11,9 +11,9 @@
 ## Run instructions
 For instruction to replicate the experiments use: `python3 experiment.py --help`
 
-To play the game with 2 logical players and yourself use: `python run_simulation.py --add_human_player --amount_of_players 2 --max_tile_number 7`
+To play the game with 2 logical players and yourself use: `python3 run_simulation.py --add_human_player --amount_of_players 2 --max_tile_number 7`
 
-To see the other options when using the GUI use `python run_simulation.py --help`
+To see the other options when using the GUI use `python3 run_simulation.py --help`
 
 ## File descriptions of all files in the repo
 <ul>
