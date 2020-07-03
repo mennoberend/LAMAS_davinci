@@ -21,7 +21,7 @@ To see the other options when using the GUI use `python3 run_simulation.py --hel
     <b>experiment.py</b>: This script can be used to simulated a series of games, for different experimental setups.
   </li>
   <li>
-    <b>game.spy</b>: Contains the game class
+    <b>game.spy</b>: Contains the game class, which holds references to all players and tiles.
   </li>
   <li>
     <b>kripke_plotter.py</b>: An assortment of functions to plot global and local kripke models using networkx and graphviz.
@@ -39,6 +39,6 @@ To see the other options when using the GUI use `python3 run_simulation.py --hel
     <b>tile.py</b>: Implements the Tile class, which represents a white or black black with a number.
   </li>
   <li>
-    <b>view.py</b>: All code related to the tkitner GUI is in this file.
+    <b>view.py</b>: All code related to the tkinter GUI is in this file.
   </li>
 </ul>
