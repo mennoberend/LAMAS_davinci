@@ -1,0 +1,28 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=32GB
+#SBATCH --time=40:30:00
+#SBATCH --partition=regular
+#SBATCH --job-name=LAMAS_exp
+
+ml Python/3.8.2-GCCcore-9.3.0
+
+source venv/bin/activate
+
+#python -u experiment.py --amount_of_players 2 --max_tile_number 4 --n 10000
+#python -u experiment.py --amount_of_players 2 --max_tile_number 5 --n 10000
+#python -u experiment.py --amount_of_players 2 --max_tile_number 6 --n 10000
+#python -u experiment.py --amount_of_players 2 --max_tile_number 7 --n 10000
+
+#python -u experiment.py --amount_of_players 3 --max_tile_number 6 --n 10000
+#python -u experiment.py --amount_of_players 3 --max_tile_number 7 --n 10000
+#python -u experiment.py --amount_of_players 3 --max_tile_number 8 --n 10000
+#python -u experiment.py --amount_of_players 3 --max_tile_number 9 --n 10000
+python -u experiment.py --amount_of_players 3 --max_tile_number 10 --n 1000
+python -u experiment.py --amount_of_players 3 --max_tile_number 11 --n 1000
+python -u experiment.py --amount_of_players 3 --max_tile_number 12 --n 1000
+python -u experiment.py --amount_of_players 3 --max_tile_number 10 --n 10000
+python -u experiment.py --amount_of_players 3 --max_tile_number 11 --n 10000
+python -u experiment.py --amount_of_players 3 --max_tile_number 12 --n 10000

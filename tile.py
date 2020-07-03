@@ -9,8 +9,8 @@ class Tile:
         self.visible = True
 
     @staticmethod
-    def complete_set():
-        max_number = 6
+    def complete_set(max_number=None):
+        max_number = max_number or 7
         return [Tile('b', i) for i in range(1, max_number + 1)] + [Tile('w', i) for i in range(1, max_number + 1)]
 
     def game_str(self):
@@ -32,4 +32,4 @@ class Tile:
         return self.color == other.color and self.number == other.number
 
     def __hash__(self):
-        return hash((self.color, self.number))
+        return hash((self.color, self.number, 190274))
